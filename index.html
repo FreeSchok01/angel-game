@@ -3,250 +3,252 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tide & Tackle: Ultimate Streamer Edition</title>
+  <title>Tide & Tackle: Zuschauer Dashboard</title>
   <style>
     :root {
-      --bg-dark: #0a0f1d; --panel-bg: #151d30; --accent: #38bdf8;
+      --bg-dark: #0f172a; --panel-bg: #1e293b; --accent: #38bdf8;
       --text: #f8fafc; --gold: #facc15; --purple: #c084fc;
       --danger: #ef4444; --success: #22c55e;
     }
     body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-dark); color: var(--text); padding-bottom: 2rem; }
-    #loading-screen { position: fixed; inset: 0; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s; }
-    .spinner { font-size: 3rem; animation: spin 1.5s infinite linear; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    header { background: var(--panel-bg); padding: 0.8rem; text-align: center; border-bottom: 2px solid var(--accent); }
-    nav { display: flex; gap: 0.4rem; background: #0f172a; padding: 0.5rem; overflow-x: auto; }
-    .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
-    .nav-btn.active { background: var(--accent); color: #000; font-weight: bold; }
+
+    header { background: #020617; padding: 1rem; text-align: center; border-bottom: 2px solid var(--accent); }
+    
+    .user-bar {
+      background: var(--panel-bg); padding: 0.8rem; display: flex;
+      justify-content: space-between; align-items: center; max-width: 900px;
+      margin: 1rem auto; border-radius: 8px; border: 1px solid #334155;
+    }
+
+    nav { display: flex; gap: 0.4rem; background: #090d16; padding: 0.6rem; overflow-x: auto; justify-content: center; }
+    .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .nav-btn.active { background: var(--accent); color: #000; }
+
     main { padding: 1rem; max-width: 900px; margin: 0 auto; }
-    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 0.5rem; background: var(--panel-bg); padding: 0.6rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-size: 0.85rem; }
-    .stat-val { font-weight: bold; display: block; font-size: 1rem; color: var(--accent); }
-    .tab-content { display: none; } .tab-content.active { display: block; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
-    .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 8px; padding: 0.8rem; text-align: center; font-size: 0.85rem; }
-    .btn-action { background: var(--accent); color: #000; border: none; padding: 0.5rem; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.4rem; }
-    .tension-bar-bg { width: 100%; height: 20px; background: #1e293b; border-radius: 10px; overflow: hidden; margin: 1rem 0; position: relative; }
-    .tension-bar-fill { height: 100%; width: 50%; background: var(--success); transition: width 0.1s linear; }
-    .target-zone { position: absolute; left: 35%; width: 30%; height: 100%; background: rgba(56, 189, 248, 0.3); border-left: 2px dashed var(--accent); border-right: 2px dashed var(--accent); }
-    .dex-card.locked { opacity: 0.3; filter: grayscale(100%); }
-    .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .leaderboard-table td, .leaderboard-table th { padding: 0.5rem; border-bottom: 1px solid #334155; text-align: left; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+    .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 10px; padding: 1rem; text-align: center; }
+    
+    .btn-action {
+      background: var(--accent); color: #000; border: none;
+      padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer;
+      font-weight: bold; width: 100%; margin-top: 0.5rem;
+    }
+    .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sell { background: var(--gold); color: #000; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    .area-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #334155; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem;
+    }
+    .area-card.unlocked { border-color: var(--success); }
+
+    .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .tag-gold { background: rgba(250, 204, 21, 0.2); color: var(--gold); }
   </style>
 </head>
 <body>
 
-  <div id="loading-screen">
-    <div class="spinner">⚓</div>
-    <h3 style="color:var(--accent);">Tide & Tackle: Ultimate</h3>
-  </div>
-
   <header>
-    <h3 style="margin:0">⚔️ Tide & Tackle (30-in-1 Engine)</h3>
-    <small id="weather-display" style="color:var(--gold)">☀️ Wetter: Sonnig | 🗺️ Biom: Fluss</small>
+    <h2 style="margin:0">🎣 Tide & Tackle: Spieler-Dashboard</h2>
+    <small style="color:#94a3b8">Steuere dein Inventar, deinen Shop & deine Gebiete direkt im Web!</small>
   </header>
 
+  <!-- USER LOGIN & STATS -->
+  <div class="user-bar">
+    <div>
+      <span style="color:#94a3b8">Angler:</span> <strong id="username-display" style="color:var(--accent)">Gast_User</strong>
+      <button onclick="changeUsername()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.8rem">✏️ Ändern</button>
+    </div>
+    <div>💰 Gold: <strong id="gold-display" style="color:var(--gold)">250</strong></div>
+    <div>📍 Ort: <strong id="location-display" style="color:var(--purple)">Start-Fluss</strong></div>
+  </div>
+
   <nav>
-    <button class="nav-btn active" onclick="openTab('game', event)">🎣 Spiel</button>
-    <button class="nav-btn" onclick="openTab('dex', event)">📖 Dex</button>
-    <button class="nav-btn" onclick="openTab('craft', event)">⚒️ Crafting</button>
-    <button class="nav-btn" onclick="openTab('aquarium', event)">🐠 Aquarium</button>
-    <button class="nav-btn" onclick="openTab('guild', event)">🛡️ Gilde & Boss</button>
-    <button class="nav-btn" onclick="openTab('comp', event)">👑 Liga</button>
-    <button class="nav-btn" onclick="openTab('shop', event)">🛒 Shop & Skins</button>
+    <button class="nav-btn active" onclick="openTab('inventory', event)">🎒 Mein Inventar</button>
+    <button class="nav-btn" onclick="openTab('shop', event)">🛒 Angel-Shop</button>
+    <button class="nav-btn" onclick="openTab('areas', event)">🗺️ Gebiete / Biome</button>
   </nav>
 
   <main>
-    <div class="stats-bar">
-      <div>Lvl <span id="u-lvl" class="stat-val">1</span></div>
-      <div>Gold <span id="u-gold" class="stat-val" style="color:var(--gold)">100</span></div>
-      <div>Punkte <span id="u-score" class="stat-val" style="color:var(--purple)">0</span></div>
-      <div>Rute <span id="u-dur" class="stat-val" style="color:var(--success)">100%</span></div>
-      <div>Müll <span id="u-trash" class="stat-val">0</span></div>
-    </div>
-
-    <!-- MAIN GAME TAB -->
-    <div id="tab-game" class="tab-content active">
-      <div class="card" style="padding:1.5rem;">
-        <h3 id="g-status">Bereit zum Angeln!</h3>
-        <div class="tension-bar-bg">
-          <div class="target-zone"></div>
-          <div id="tension-fill" class="tension-bar-fill"></div>
-        </div>
-        <button id="btn-cast" class="btn-action" style="font-size:1.1rem" onclick="handleCast()">🎣 Auswerfen</button>
+    <!-- TAB 1: INVENTAR -->
+    <div id="tab-inventory" class="tab-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3>🎒 Dein Rucksack (<span id="inv-count">0</span>/10)</h3>
+        <button class="btn-action btn-sell" style="width:auto" onclick="sellAllFish()">💰 Alle Fische verkaufen</button>
       </div>
+      
+      <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- DEX TAB -->
-    <div id="tab-dex" class="tab-content">
-      <h3>📖 Fish-Dex & Shiny Mutationen</h3>
-      <div class="grid" id="dex-grid"></div>
-    </div>
-
-    <!-- CRAFTING TAB -->
-    <div id="tab-craft" class="tab-content">
-      <h3>⚒️ Müll-Recycling & Köder-Crafting</h3>
-      <div class="card">
-        <h4>🪱 Spezial-Köder herstellen</h4>
-        <p>Kosten: 3x Müll</p>
-        <button class="btn-action" onclick="craftBait()">Köder herstellen</button>
-      </div>
-    </div>
-
-    <!-- AQUARIUM TAB -->
-    <div id="tab-aquarium" class="tab-content">
-      <h3>🐠 Virtuelles Aquarium (Passives Gold)</h3>
-      <div class="card">
-        <p>Eingesetzte Fische generieren Gold pro Sekunde.</p>
-        <button class="btn-action" onclick="claimAquarium()">💰 Passives Gold abholen (<span id="aqua-gold">0</span>g)</button>
-      </div>
-    </div>
-
-    <!-- GILDE & BOSS TAB -->
-    <div id="tab-guild" class="tab-content">
-      <h3>🐉 Community Bossfight & Gilden</h3>
-      <div class="card" style="border-color:var(--danger)">
-        <h4>🔥 Streamer-Worldboss: Kraken</h4>
-        <p>Boss HP: <b id="boss-hp" style="color:var(--danger)">1000/1000</b></p>
-        <button class="btn-action" style="background:var(--danger); color:#fff" onclick="attackBoss()">⚔️ Boss angreifen (-10 HP)</button>
-      </div>
-    </div>
-
-    <!-- COMPETITION TAB -->
-    <div id="tab-comp" class="tab-content">
-      <h3>👑 7-Tage Giveaway Liga</h3>
-      <table class="leaderboard-table">
-        <thead><tr><th>#</th><th>Spieler</th><th>Punkte</th></tr></thead>
-        <tbody id="lb-body"></tbody>
-      </table>
-    </div>
-
-    <!-- SHOP & SKINS TAB -->
-    <div id="tab-shop" class="tab-content">
-      <h3>🛒 Shop, Ausrüstung & Skins</h3>
+    <!-- TAB 2: ANGEL-SHOP -->
+    <div id="tab-shop" class="tab-content" style="display:none;">
+      <h3>🛒 Ausrüstung & Angelruten</h3>
       <div class="grid">
         <div class="card">
-          <h4>🛠️ Rute Reparieren</h4>
-          <button class="btn-action" onclick="repair()">Reparieren (20g)</button>
+          <div style="font-size:2.5rem">🎣</div>
+          <h4>Holzangel</h4>
+          <span class="tag tag-gold">Ausgerüstet</span>
+          <p style="font-size:0.8rem; color:#94a3b8">Standard-Rute für kleine Fische.</p>
+          <button class="btn-action" disabled>Im Besitz</button>
         </div>
+
         <div class="card">
-          <h4>🎩 Angler-Hut (Skin)</h4>
-          <button class="btn-action" onclick="buySkin()">Kaufen (100g)</button>
+          <div style="font-size:2.5rem">🎋</div>
+          <h4>Bambus-Profirute</h4>
+          <p style="font-size:0.85rem; color:var(--gold)">Preis: 300 Gold</p>
+          <p style="font-size:0.8rem; color:#94a3b8">+15% Chance auf seltene Fische.</p>
+          <button class="btn-action" id="btn-buy-rod2" onclick="buyItem('rod2', 300)">Kaufen</button>
         </div>
+
+        <div class="card">
+          <div style="font-size:2.5rem">⚡</div>
+          <h4>Titan-Tiefseerute</h4>
+          <p style="font-size:0.85rem; color:var(--gold)">Preis: 1,000 Gold</p>
+          <p style="font-size:0.8rem; color:#94a3b8">Nötig für epische & legendäre Fische.</p>
+          <button class="btn-action" id="btn-buy-rod3" onclick="buyItem('rod3', 1000)">Kaufen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: GEBIETE & BIOME -->
+    <div id="tab-areas" class="tab-content" style="display:none;">
+      <h3>🗺️ Fanggebiete freischalten</h3>
+
+      <div class="area-card unlocked">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>🌊 1. Start-Fluss (Freigeschaltet)</h4>
+          <span style="color:var(--success); font-weight:bold;">Aktiv</span>
+        </div>
+        <p style="font-size:0.85rem; color:#94a3b8;">Hier fängst du Flussbarsche, Forellen und Karpfen.</p>
+        <button class="btn-action" onclick="setLocation('Start-Fluss')">Hingegen</button>
+      </div>
+
+      <div class="area-card" id="area-lake">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>🌲 2. Nebel-See</h4>
+          <span style="color:var(--gold); font-weight:bold;">500 Gold</span>
+        </div>
+        <p style="font-size:0.85rem; color:#94a3b8;">Heimat von Schatten-Karpfen und seltenen Aalen.</p>
+        <button class="btn-action" id="btn-unlock-lake" onclick="unlockArea('lake', 500, 'Nebel-See')">Gebiet Freischalten (500g)</button>
+      </div>
+
+      <div class="area-card" id="area-ocean">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>🌋 3. Vulkan-Ozean</h4>
+          <span style="color:var(--gold); font-weight:bold;">2,000 Gold</span>
+        </div>
+        <p style="font-size:0.85rem; color:#94a3b8;">Extrem gefährlich! Chance auf Drachenfische & Schätze.</p>
+        <button class="btn-action" id="btn-unlock-ocean" onclick="unlockArea('ocean', 2000, 'Vulkan-Ozean')">Gebiet Freischalten (2000g)</button>
       </div>
     </div>
   </main>
 
   <script>
-    setTimeout(() => {
-      document.getElementById('loading-screen').style.opacity = '0';
-      setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
-    }, 500);
-
-    const FISH = [
-      { id:'f1', name:'Flussbarsch', icon:'🐟', val:15, pts:5 },
-      { id:'f2', name:'Karpfen', icon:'🐡', val:35, pts:15 },
-      { id:'f3', name:'Drachenfisch', icon:'🐉', val:150, pts:80 },
-      { id:'t1', name:'Plastikmüll', icon:'👟', val:0, pts:0, isTrash:true }
-    ];
-
-    let state = JSON.parse(localStorage.getItem('tt_30_state')) || {
-      lvl:1, gold:100, score:0, dur:100, trash:0,
-      dex:['f1'], aquaGold:0, bossHP:1000, skin:false
+    // Spielstand-Daten
+    let player = JSON.parse(localStorage.getItem('tt_viewer_data')) || {
+      name: "TwitchViewer_" + Math.floor(Math.random() * 1000),
+      gold: 250,
+      location: "Start-Fluss",
+      inventory: [
+        { id: 1, name: "Flussbarsch", icon: "🐟", val: 20 },
+        { id: 2, name: "Regenbogenforelle", icon: "🐠", val: 45 }
+      ],
+      unlockedAreas: ['Start-Fluss'],
+      items: ['rod1']
     };
 
-    let isFishing = false, tension = 50, gameInterval = null;
-
     function openTab(tab, e) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('tab-' + tab).style.display = 'block';
       if(e) e.currentTarget.classList.add('active');
     }
 
+    function changeUsername() {
+      const newName = prompt("Gib deinen Twitch-Benutzernamen ein:", player.name);
+      if(newName) {
+        player.name = newName;
+        updateUI();
+      }
+    }
+
     function updateUI() {
-      document.getElementById('u-lvl').innerText = state.lvl;
-      document.getElementById('u-gold').innerText = state.gold;
-      document.getElementById('u-score').innerText = state.score;
-      document.getElementById('u-dur').innerText = state.dur + '%';
-      document.getElementById('u-trash').innerText = state.trash;
-      document.getElementById('aqua-gold').innerText = state.aquaGold;
-      document.getElementById('boss-hp').innerText = `${state.bossHP}/1000`;
-      
-      renderDex();
-      renderLB();
-      localStorage.setItem('tt_30_state', JSON.stringify(state));
+      document.getElementById('username-display').innerText = player.name;
+      document.getElementById('gold-display').innerText = player.gold;
+      document.getElementById('location-display').innerText = player.location;
+      document.getElementById('inv-count').innerText = player.inventory.length;
+
+      renderInventory();
+      saveData();
     }
 
-    function handleCast() {
-      if(state.dur <= 0) return alert("Rute kaputt! Repariere sie im Shop.");
-      if(!isFishing) {
-        state.dur -= 5;
-        isFishing = true;
-        tension = 50;
-        document.getElementById('btn-cast').innerText = "🎣 Einholen!";
-        gameInterval = setInterval(() => {
-          tension -= 4;
-          if(tension <= 0 || tension >= 100) endGame(false);
-          document.getElementById('tension-fill').style.width = tension + '%';
-        }, 100);
-      } else {
-        tension += 14;
-        if(tension >= 35 && tension <= 65 && Math.random() < 0.25) endGame(true);
+    function renderInventory() {
+      const grid = document.getElementById('inventory-grid');
+      if(player.inventory.length === 0) {
+        grid.innerHTML = '<p style="color:#94a3b8; grid-column: 1/-1;">Dein Rucksack ist leer. Schreibe <code>!angeln</code> im Chat!</p>';
+        return;
       }
-    }
 
-    function endGame(win) {
-      clearInterval(gameInterval);
-      isFishing = false;
-      document.getElementById('btn-cast').innerText = "🎣 Auswerfen";
-      if(win) {
-        let item = FISH[Math.floor(Math.random() * FISH.length)];
-        if(item.isTrash) {
-          state.trash++;
-          alert("👟 Du hast Müll gefischt! Nutze ihn zum Craften.");
-        } else {
-          state.gold += item.val;
-          state.score += item.pts;
-          if(!state.dex.includes(item.id)) state.dex.push(item.id);
-          alert(`🎉 ${item.name} gefangen! +${item.val}g`);
-        }
-      } else {
-        alert("💥 Schnur gerissen!");
-      }
-      updateUI();
-    }
-
-    function craftBait() {
-      if(state.trash >= 3) { state.trash -= 3; alert("🪱 Spezial-Köder hergestellt!"); updateUI(); }
-      else alert("Nicht genug Müll!");
-    }
-
-    function claimAquarium() {
-      state.gold += state.aquaGold; state.aquaGold = 0; updateUI();
-    }
-
-    function attackBoss() {
-      if(state.bossHP > 0) { state.bossHP -= 10; state.score += 20; updateUI(); }
-    }
-
-    function repair() { state.gold >= 20 ? (state.gold -= 20, state.dur = 100, updateUI()) : alert("Zu wenig Gold!"); }
-    function buySkin() { state.gold >= 100 ? (state.gold -= 100, state.skin = true, alert("🎩 Hut gekauft!"), updateUI()) : alert("Zu wenig Gold!"); }
-
-    function renderDex() {
-      document.getElementById('dex-grid').innerHTML = FISH.map(f => `
-        <div class="card dex-card ${state.dex.includes(f.id) ? '' : 'locked'}">
-          <div style="font-size:1.5rem">${f.icon}</div>
-          <b>${f.name}</b>
+      grid.innerHTML = player.inventory.map((item, idx) => `
+        <div class="card">
+          <div style="font-size:2.5rem">${item.icon}</div>
+          <h4>${item.name}</h4>
+          <p style="color:var(--gold); font-weight:bold;">${item.val} Gold</p>
+          <button class="btn-action btn-sell" onclick="sellItem(${idx})">Verkaufen</button>
         </div>
       `).join('');
     }
 
-    function renderLB() {
-      document.getElementById('lb-body').innerHTML = `<tr><td>1.</td><td>Du</td><td>${state.score} Pkt.</td></tr>`;
+    function sellItem(idx) {
+      player.gold += player.inventory[idx].val;
+      player.inventory.splice(idx, 1);
+      updateUI();
     }
 
-    // Passiver Aquarium-Timer
-    setInterval(() => { state.aquaGold += 1; updateUI(); }, 3000);
+    function sellAllFish() {
+      let total = 0;
+      player.inventory.forEach(item => total += item.val);
+      player.gold += total;
+      player.inventory = [];
+      alert(`🎉 Alle Fische verkauft für ${total} Gold!`);
+      updateUI();
+    }
+
+    function buyItem(itemId, cost) {
+      if(player.gold >= cost) {
+        player.gold -= cost;
+        player.items.push(itemId);
+        alert("🎉 Ausrüstung erfolgreich gekauft!");
+        document.getElementById('btn-buy-' + itemId).innerText = "Im Besitz";
+        document.getElementById('btn-buy-' + itemId).disabled = true;
+        updateUI();
+      } else {
+        alert("❌ Nicht genug Gold!");
+      }
+    }
+
+    function unlockArea(areaId, cost, areaName) {
+      if(player.gold >= cost) {
+        player.gold -= cost;
+        player.unlockedAreas.push(areaName);
+        document.getElementById('area-' + areaId).classList.add('unlocked');
+        alert(`🗺️ ${areaName} wurde freigeschaltet!`);
+        setLocation(areaName);
+      } else {
+        alert("❌ Nicht genug Gold!");
+      }
+    }
+
+    function setLocation(areaName) {
+      player.location = areaName;
+      updateUI();
+    }
+
+    function saveData() {
+      localStorage.setItem('tt_viewer_data', JSON.stringify(player));
+    }
 
     updateUI();
   </script>
