@@ -26,19 +26,13 @@
       overflow-x: hidden;
     }
 
-    /* LOADING SCREEN STYLES */
     #loading-screen {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0; width: 100vw; height: 100vh;
       background-color: var(--bg-dark);
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
       transition: opacity 0.5s ease, visibility 0.5s;
     }
 
@@ -55,83 +49,48 @@
     }
 
     .load-bar-bg {
-      width: 80%;
-      max-width: 300px;
-      height: 12px;
-      background: #1e293b;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #334155;
-      margin-top: 1rem;
+      width: 80%; max-width: 300px; height: 12px;
+      background: #1e293b; border-radius: 6px;
+      overflow: hidden; border: 1px solid #334155; margin-top: 1rem;
     }
 
     .load-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--accent);
-      transition: width 0.3s ease;
+      height: 100%; width: 0%;
+      background: var(--accent); transition: width 0.3s ease;
       box-shadow: 0 0 8px var(--accent);
     }
 
-    #load-text {
-      font-size: 0.9rem;
-      color: #94a3b8;
-      margin-top: 0.5rem;
-    }
+    #load-text { font-size: 0.9rem; color: #94a3b8; margin-top: 0.5rem; }
 
-    /* MAIN APP STYLES */
     header {
       background: linear-gradient(180deg, #1e293b 0%, var(--panel-bg) 100%);
-      padding: 1rem;
-      text-align: center;
+      padding: 1rem; text-align: center;
       border-bottom: 2px solid var(--accent);
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
     nav {
-      display: flex;
-      gap: 0.5rem;
-      background: #0f172a;
-      padding: 0.6rem;
-      overflow-x: auto;
-      border-bottom: 1px solid #1e293b;
+      display: flex; gap: 0.5rem; background: #0f172a;
+      padding: 0.6rem; overflow-x: auto; border-bottom: 1px solid #1e293b;
     }
 
     .nav-btn {
-      background: var(--panel-bg);
-      border: 1px solid #334155;
-      color: var(--text);
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      white-space: nowrap;
-      transition: all 0.2s;
+      background: var(--panel-bg); border: 1px solid #334155;
+      color: var(--text); padding: 0.6rem 1rem; border-radius: 8px;
+      cursor: pointer; font-weight: bold; white-space: nowrap; transition: all 0.2s;
     }
 
     .nav-btn.active {
-      background: var(--accent);
-      color: var(--bg-dark);
-      border-color: var(--accent);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+      background: var(--accent); color: var(--bg-dark);
+      border-color: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
-    main {
-      padding: 1rem;
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    main { padding: 1rem; max-width: 900px; margin: 0 auto; }
 
     .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 0.5rem;
-      background: var(--panel-bg);
-      padding: 0.8rem;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-      border: 1px solid #1e293b;
-      text-align: center;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 0.5rem; background: var(--panel-bg); padding: 0.8rem;
+      border-radius: 10px; margin-bottom: 1rem; border: 1px solid #1e293b; text-align: center;
     }
 
     .stat-val { font-weight: bold; display: block; font-size: 1.1rem; }
@@ -142,106 +101,70 @@
     .tab-content.active { display: block; }
 
     .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 0.8rem;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem;
     }
 
     .card {
-      background: var(--panel-bg);
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 0.8rem;
-      text-align: center;
-      position: relative;
+      background: var(--panel-bg); border: 1px solid #334155;
+      border-radius: 10px; padding: 0.8rem; text-align: center; position: relative;
     }
 
     .btn-action {
-      background: var(--accent);
-      color: var(--bg-dark);
-      border: none;
-      padding: 0.6rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      width: 100%;
-      margin-top: 0.5rem;
+      background: var(--accent); color: var(--bg-dark); border: none;
+      padding: 0.6rem; border-radius: 6px; cursor: pointer;
+      font-weight: bold; width: 100%; margin-top: 0.5rem;
     }
 
-    /* MINIGAME STYLES */
     .minigame-container {
-      background: #0f172a;
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
+      background: #0f172a; border: 2px solid var(--accent);
+      border-radius: 12px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;
     }
 
     .tension-bar-bg {
-      width: 100%;
-      height: 24px;
-      background: #1e293b;
-      border-radius: 12px;
-      overflow: hidden;
-      margin: 1rem 0;
-      position: relative;
-      border: 1px solid #475569;
+      width: 100%; height: 24px; background: #1e293b;
+      border-radius: 12px; overflow: hidden; margin: 1rem 0;
+      position: relative; border: 1px solid #475569;
     }
 
     .tension-bar-fill {
-      height: 100%;
-      width: 50%;
-      background: var(--success);
+      height: 100%; width: 50%; background: var(--success);
       transition: width 0.1s linear, background-color 0.2s;
     }
 
     .target-zone {
-      position: absolute;
-      left: 40%;
-      width: 30%;
-      height: 100%;
+      position: absolute; left: 40%; width: 30%; height: 100%;
       background: rgba(56, 189, 248, 0.3);
-      border-left: 2px dashed var(--accent);
-      border-right: 2px dashed var(--accent);
-      top: 0;
+      border-left: 2px dashed var(--accent); border-right: 2px dashed var(--accent); top: 0;
     }
 
-    /* LEADERBOARD & SEASONS */
     .season-banner {
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      border: 1px solid var(--purple);
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      text-align: center;
+      border: 1px solid var(--purple); border-radius: 10px;
+      padding: 1rem; margin-bottom: 1rem; text-align: center;
     }
 
-    .leaderboard-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 0.5rem;
+    .prize-box {
+      background: #0f172a; border: 2px dashed var(--gold);
+      border-radius: 8px; padding: 1rem; margin: 1rem 0; text-align: center;
     }
 
+    .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
     .leaderboard-table th, .leaderboard-table td {
-      padding: 0.6rem;
-      text-align: left;
-      border-bottom: 1px solid #334155;
+      padding: 0.6rem; text-align: left; border-bottom: 1px solid #334155;
     }
 
-    .weather-badge {
-      display: inline-block;
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      background: #1e293b;
-      margin-bottom: 0.5rem;
+    .dex-card {
+      background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.8rem; text-align: center;
+    }
+    .dex-card.locked { opacity: 0.4; filter: grayscale(100%); }
+
+    .quest-card {
+      background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.8rem; margin-bottom: 0.5rem; border-radius: 4px;
     }
   </style>
 </head>
 <body>
 
-  <!-- LOADING SCREEN -->
   <div id="loading-screen">
     <div class="spinner">⚓</div>
     <h3 style="margin:0; color:var(--accent);">Tide & Tackle</h3>
@@ -251,7 +174,6 @@
     <div id="load-text">Initialisiere Spielsysteme...</div>
   </div>
 
-  <!-- MAIN GAME INTERFACE -->
   <header>
     <h2 style="margin:0">⚔️ Tide & Tackle RPG</h2>
     <div id="weather-display" class="weather-badge">☀️ Wetter: Sonnig (+0% Luck)</div>
@@ -259,10 +181,12 @@
 
   <nav>
     <button class="nav-btn active" onclick="openTab('action', event)">🎣 Angeln</button>
-    <button class="nav-btn" onclick="openTab('competition', event)">🏆 7-Tage-Liga</button>
+    <button class="nav-btn" onclick="openTab('dex', event)">📖 Fish-Dex</button>
+    <button class="nav-btn" onclick="openTab('quests', event)">📜 Quests</button>
+    <button class="nav-btn" onclick="openTab('achievements', event)">🏆 Erfolge</button>
+    <button class="nav-btn" onclick="openTab('competition', event)">👑 7-Tage-Liga</button>
     <button class="nav-btn" onclick="openTab('inventory', event)">🎒 Rucksack</button>
-    <button class="nav-btn" onclick="openTab('gear', event)">🛡️ Ausrüstung</button>
-    <button class="nav-btn" onclick="openTab('skills', event)">✨ Talente</button>
+    <button class="nav-btn" onclick="openTab('gear', event)">🛡️ Werkstatt</button>
     <button class="nav-btn" onclick="openTab('settings', event)">⚙️ Optionen</button>
   </nav>
 
@@ -271,7 +195,7 @@
       <div>Level<span id="user-level" class="stat-val">1</span></div>
       <div>Gold<span id="user-gold" class="stat-val gold">100</span></div>
       <div>Saison-Punkte<span id="user-score" class="stat-val purple">0</span></div>
-      <div>SP<span id="user-sp" class="stat-val">0</span></div>
+      <div>Ruten-Zustand<span id="user-durability" class="stat-val" style="color:var(--success)">100%</span></div>
     </div>
 
     <!-- TAB: ANGELN -->
@@ -288,12 +212,39 @@
       </div>
     </div>
 
+    <!-- TAB: FISH-DEX -->
+    <div id="tab-dex" class="tab-content">
+      <h3>📖 Fish-Dex (Sammelalbum)</h3>
+      <p style="font-size:0.9rem; color:#94a3b8;">Schalte alle Fischarten frei!</p>
+      <div class="grid" id="dex-grid"></div>
+    </div>
+
+    <!-- TAB: QUESTS -->
+    <div id="tab-quests" class="tab-content">
+      <h3>📜 Tägliche Quests</h3>
+      <div id="quest-list"></div>
+    </div>
+
+    <!-- TAB: ERFOLGE -->
+    <div id="tab-achievements" class="tab-content">
+      <h3>🏆 Erfolge & Abzeichen</h3>
+      <div class="grid" id="achievement-grid"></div>
+    </div>
+
     <!-- TAB: 7-TAGE WETTBEWERB -->
     <div id="tab-competition" class="tab-content">
       <div class="season-banner">
-        <h3 style="margin:0; color:var(--purple)">🏆 Wöchentliche Angel-Meisterschaft</h3>
-        <p style="margin:0.4rem 0 0.8rem 0; font-size:0.9rem;">Die besten Angler erhalten Extrapunkte für das Streamer-Giveaway!</p>
+        <h3 style="margin:0; color:var(--purple)">👑 Wöchentliche Angel-Meisterschaft</h3>
+        <p style="margin:0.4rem 0; font-size:0.9rem;">Angle um die Wette und gewinne den Wochenpreis!</p>
         <div style="font-weight:bold; font-size:1.1rem; color:var(--gold)" id="season-timer">⏱️ Verbleibend: 6d 23h 59m</div>
+      </div>
+
+      <div class="prize-box">
+        <h4 style="margin:0; color:var(--gold)">🎁 Hauptgewinn dieser Woche</h4>
+        <p id="prize-description" style="font-size:0.9rem; color:#94a3b8; margin:0.3rem 0;">Wird geladen...</p>
+        <div id="prize-claim-area">
+          <button class="btn-action" style="background:var(--gold); color:#000;" onclick="revealPrizeCode()">🔒 Code freischalten (Platz 1 erforderlich)</button>
+        </div>
       </div>
 
       <h3>Kanal-Rangliste</h3>
@@ -305,9 +256,7 @@
             <th>Saison-Punkte</th>
           </tr>
         </thead>
-        <tbody id="leaderboard-body">
-          <!-- Dynamischer Inhalt -->
-        </tbody>
+        <tbody id="leaderboard-body"></tbody>
       </table>
     </div>
 
@@ -317,43 +266,32 @@
       <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- TAB: AUSRÜSTUNG -->
+    <!-- TAB: WERKSTATT & SHOP -->
     <div id="tab-gear" class="tab-content">
-      <h3>Ausrüstung</h3>
+      <h3>Werkstatt & Ausrüstung</h3>
       <div class="grid">
         <div class="card">
-          <h4>🎣 Rute</h4>
-          <p id="gear-rod">Holzstock (Stufe 1)</p>
-          <button class="btn-action" onclick="upgradeGear('rod')">Upgraden (100g)</button>
+          <h4>🛠️ Rute Reparieren</h4>
+          <p id="durability-text">Zustand: 100%</p>
+          <button class="btn-action" onclick="repairRod()">Reparieren (20g)</button>
         </div>
         <div class="card">
-          <h4>🧵 Schnur</h4>
-          <p id="gear-line">Hanfseil (Stufe 1)</p>
-          <button class="btn-action" onclick="upgradeGear('line')">Upgraden (100g)</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: SKILLS -->
-    <div id="tab-skills" class="tab-content">
-      <h3>Talentbaum</h3>
-      <div class="grid">
-        <div class="card">
-          <h4>💰 Goldsucher</h4>
-          <p>+15% Gold beim Verkaufen</p>
-          <button class="btn-action" onclick="learnSkill('gold')">Lernen (1 SP)</button>
-        </div>
-        <div class="card">
-          <h4>🍀 Glückspilz</h4>
-          <p>+10% Seltenheits-Chancen</p>
-          <button class="btn-action" onclick="learnSkill('luck')">Lernen (1 SP)</button>
+          <h4>🍀 Glücks-Talisman</h4>
+          <p>Permanenter +5% Seltenheits-Bonus</p>
+          <button class="btn-action" onclick="buyTalisman()">Kaufen (150g)</button>
         </div>
       </div>
     </div>
 
     <!-- TAB: OPTIONEN -->
     <div id="tab-settings" class="tab-content">
-      <h3>Einstellungen</h3>
+      <h3>Einstellungen & Streamer-Tools</h3>
+      <div id="admin-panel" class="card" style="margin-bottom:1rem; display:none;">
+        <h4>🎥 Streamer Admin-Bereich</h4>
+        <p style="font-size:0.85rem; color:#94a3b8;">Trage hier den Gewinn-Code für deine Community ein.</p>
+        <button class="btn-action" onclick="setStreamerCode()">🔑 Gewinn-Code festlegen</button>
+      </div>
+
       <div class="card">
         <h4>Spielstand zurücksetzen</h4>
         <p style="font-size:0.85rem; color:#94a3b8;">Löscht alle lokalen Testdaten im Browser.</p>
@@ -363,11 +301,11 @@
   </main>
 
   <script>
-    // URL-PARAMETER FÜR MULTI-STREAMER SUPPORT
     const urlParams = new URLSearchParams(window.location.search);
-    const streamerChannel = urlParams.get('channel') || 'default_streamer';
+    if (urlParams.get('role') === 'admin') {
+      document.getElementById('admin-panel').style.display = 'block';
+    }
 
-    // INITIAL LOAD ANIMATION
     window.addEventListener('DOMContentLoaded', () => {
       const bar = document.getElementById('load-bar');
       const text = document.getElementById('load-text');
@@ -375,8 +313,8 @@
 
       const steps = [
         { progress: '30%', label: 'Lade Angel-Equipment...' },
-        { progress: '65%', label: 'Prüfe Saison-Status...' },
-        { progress: '90%', label: 'Lade Kanal-Rangliste...' },
+        { progress: '65%', label: 'Lade Werkstatt & Talismane...' },
+        { progress: '90%', label: 'Lade Erfolge & Saison...' },
         { progress: '100%', label: 'Bereit!' }
       ];
 
@@ -396,30 +334,39 @@
       }, 300);
     });
 
-    // GAME STATE
+    const FISH_DATABASE = [
+      { id: 'f1', name: 'Flussbarsch', icon: '🐟', rarity: 'Gewöhnlich', val: 15, pts: 5 },
+      { id: 'f2', name: 'Regenbogenforelle', icon: '🐠', rarity: 'Selten', val: 35, pts: 15 },
+      { id: 'f3', name: 'Schatten-Karpfen', icon: '🐡', rarity: 'Episch', val: 80, pts: 35 },
+      { id: 'f4', name: 'Auralis-Drachenfisch', icon: '🐉', rarity: 'Legendär', val: 250, pts: 100 },
+      { id: 'c1', name: 'Schatztruhe', icon: '🪙', rarity: 'Schatz', val: 150, pts: 50 }
+    ];
+
     let state = JSON.parse(localStorage.getItem('tide_tackle_rpg')) || {
-      level: 1, xp: 0, gold: 100, sp: 0, seasonScore: 0,
+      level: 1, xp: 0, gold: 100, seasonScore: 0,
+      durability: 100,
+      hasTalisman: false,
+      unlockedDex: ['f1'],
       inventory: [],
-      gear: { rod: 1, line: 1 },
-      skills: { gold: 0, luck: 0 }
+      achievements: [
+        { id: 'a1', title: 'Erster Fang', desc: 'Fange deinen ersten Fisch', done: false }
+      ],
+      quests: [
+        { id: 'q1', text: 'Fange 3 Fische', target: 3, current: 0, reward: 50, done: false }
+      ]
     };
 
-    // MOCK LEADERBOARD DATA (WIRD SPÄTER VON FIREBASE GEHOLT)
+    let prizeData = JSON.parse(localStorage.getItem('tide_tackle_prize')) || {
+      title: "10€ Steam Gutschein",
+      code: "STEAM-1234-TEST"
+    };
+
     let leaderboard = [
       { name: "Du", score: state.seasonScore },
       { name: "FishMaster99", score: 420 },
-      { name: "StreamFan_01", score: 280 },
-      { name: "AnglerKönig", score: 150 }
+      { name: "StreamFan_01", score: 280 }
     ];
 
-    let weatherList = [
-      { name: "Sonnig ☀️", luck: 0 },
-      { name: "Regen 🌧️", luck: 15 },
-      { name: "Sturm 🌩️", luck: 35 }
-    ];
-    let currentWeather = weatherList[0];
-
-    // MINIGAME STATE
     let isFishing = false;
     let tension = 50;
     let gameInterval = null;
@@ -435,17 +382,18 @@
       document.getElementById('user-level').innerText = state.level;
       document.getElementById('user-gold').innerText = state.gold;
       document.getElementById('user-score').innerText = state.seasonScore;
-      document.getElementById('user-xp').innerText = `${state.xp}/${state.level * 50}`;
-      document.getElementById('user-sp').innerText = state.sp;
-      document.getElementById('gear-rod').innerText = `Holzstock (Stufe ${state.gear.rod})`;
-      document.getElementById('gear-line').innerText = `Hanfseil (Stufe ${state.gear.line})`;
-      
-      // Update Leaderboard Self Score
+      document.getElementById('user-durability').innerText = `${state.durability}%`;
+      document.getElementById('durability-text').innerText = `Zustand: ${state.durability}%`;
+
+      document.getElementById('prize-description').innerText = `Preis: ${prizeData.title}`;
+
       leaderboard[0].score = state.seasonScore;
       leaderboard.sort((a,b) => b.score - a.score);
       renderLeaderboard();
-
       renderInventory();
+      renderDex();
+      renderQuests();
+      renderAchievements();
       saveGame();
     }
 
@@ -453,26 +401,24 @@
       localStorage.setItem('tide_tackle_rpg', JSON.stringify(state));
     }
 
-    function resetData() {
-      if(confirm("Möchtest du wirklich alle Spieldaten zurücksetzen?")) {
-        localStorage.removeItem('tide_tackle_rpg');
-        location.reload();
-      }
-    }
-
-    // MINIGAME LOGIC
     function handleMainAction() {
       const btn = document.getElementById('btn-cast');
       const status = document.getElementById('game-status');
 
       if (!isFishing) {
+        if(state.durability <= 0) {
+          alert("Deine Angelrute ist kaputt! Repariere sie in der Werkstatt.");
+          return;
+        }
+
+        state.durability -= 5;
         isFishing = true;
         btn.innerText = "🎣 Einholen (Rhythmus halten!)";
         status.innerText = "Ein Fisch beißt an! Halte die Spannung im blauen Bereich!";
         tension = 50;
 
         gameInterval = setInterval(() => {
-          tension -= 3 + (state.gear.line * 0.5);
+          tension -= 3;
           if (tension <= 0 || tension >= 100) {
             endMinigame(false);
           }
@@ -481,7 +427,7 @@
       } else {
         tension += 12;
         if (tension >= 40 && tension <= 70) {
-          if (Math.random() < 0.15) {
+          if (Math.random() < 0.18) {
             endMinigame(true);
           }
         }
@@ -502,46 +448,94 @@
       btn.innerText = "🎣 Auswerfen";
 
       if (success) {
-        const catchVal = Math.floor(Math.random() * 30) + 10;
-        const pts = Math.floor(catchVal / 2);
-        state.inventory.push({ name: "Glanz-Fisch", val: catchVal, icon: "🐟" });
-        state.seasonScore += pts;
-        addXP(20);
-        status.innerText = `🎉 Gefangen! Wert: ${catchVal} Gold (+${pts} Saison-Punkte)`;
+        const fish = catchRandomFish();
+        state.inventory.push(fish);
+        state.seasonScore += fish.pts;
+
+        // Erfolge
+        if(!state.achievements[0].done) {
+          state.achievements[0].done = true;
+          alert("🏆 ERFOLG FREIGESCHALTET: Erster Fang!");
+        }
+
+        if(!state.unlockedDex.includes(fish.id)) {
+          state.unlockedDex.push(fish.id);
+        }
+
+        status.innerText = `🎉 ${fish.name} gefangen! Wert: ${fish.val} Gold (+${fish.pts} Saison-Punkte)`;
       } else {
         status.innerText = "💥 Die Schnur ist gerissen!";
       }
       updateUI();
     }
 
-    function addXP(amount) {
-      state.xp += amount;
-      if (state.xp >= state.level * 50) {
-        state.xp -= state.level * 50;
-        state.level += 1;
-        state.sp += 1;
-        alert(`🎉 LEVEL UP! Du bist jetzt Level ${state.level} (+1 SP)`);
-      }
+    function catchRandomFish() {
+      const rand = Math.random() + (state.hasTalisman ? 0.05 : 0);
+      if(rand > 0.95) return FISH_DATABASE[4]; // Schatztruhe
+      if(rand > 0.85) return FISH_DATABASE[3]; // Legendär
+      if(rand > 0.65) return FISH_DATABASE[2]; // Episch
+      if(rand > 0.40) return FISH_DATABASE[1]; // Selten
+      return FISH_DATABASE[0];
     }
 
-    function upgradeGear(type) {
-      if(state.gold >= 100) {
-        state.gold -= 100;
-        state.gear[type] += 1;
+    function repairRod() {
+      if(state.gold >= 20) {
+        state.gold -= 20;
+        state.durability = 100;
         updateUI();
       } else {
         alert("Nicht genug Gold!");
       }
     }
 
-    function learnSkill(skill) {
-      if(state.sp >= 1) {
-        state.sp -= 1;
-        state.skills[skill] += 1;
+    function buyTalisman() {
+      if(state.hasTalisman) {
+        alert("Du besitzt diesen Talisman bereits!");
+        return;
+      }
+      if(state.gold >= 150) {
+        state.gold -= 150;
+        state.hasTalisman = true;
+        alert("🍀 Glücks-Talisman ausgerüstet!");
         updateUI();
       } else {
-        alert("Keine Skillpunkte verfügbar!");
+        alert("Nicht genug Gold!");
       }
+    }
+
+    function renderDex() {
+      const grid = document.getElementById('dex-grid');
+      grid.innerHTML = FISH_DATABASE.map(f => {
+        const isUnlocked = state.unlockedDex.includes(f.id);
+        return `
+          <div class="dex-card ${isUnlocked ? '' : 'locked'}">
+            <div style="font-size:2rem">${isUnlocked ? f.icon : '❓'}</div>
+            <h4>${isUnlocked ? f.name : '???'}</h4>
+            <p style="font-size:0.8rem; color:var(--purple)">${f.rarity}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderQuests() {
+      const list = document.getElementById('quest-list');
+      list.innerHTML = state.quests.map(q => `
+        <div class="quest-card">
+          <h4>${q.text}</h4>
+          <p style="font-size:0.85rem; margin:0.2rem 0;">Fortschritt: ${q.current}/${q.target}</p>
+          <p style="font-size:0.85rem; color:var(--gold); margin:0;">Belohnung: ${q.reward} Gold</p>
+        </div>
+      `).join('');
+    }
+
+    function renderAchievements() {
+      const grid = document.getElementById('achievement-grid');
+      grid.innerHTML = state.achievements.map(a => `
+        <div class="card" style="border-color:${a.done ? 'var(--gold)' : '#334155'}">
+          <h4>${a.done ? '🌟' : '🔒'} ${a.title}</h4>
+          <p style="font-size:0.8rem; color:#94a3b8;">${a.desc}</p>
+        </div>
+      `).join('');
     }
 
     function renderInventory() {
@@ -561,9 +555,7 @@
     }
 
     function sellItem(idx) {
-      const item = state.inventory[idx];
-      const bonus = 1 + (state.skills.gold * 0.15);
-      state.gold += Math.round(item.val * bonus);
+      state.gold += state.inventory[idx].val;
       state.inventory.splice(idx, 1);
       updateUI();
     }
@@ -579,26 +571,21 @@
       `).join('');
     }
 
-    // 7-TAGE TIMER SIMULATION
-    function startSeasonTimer() {
-      const timerEl = document.getElementById('season-timer');
-      // Berechnet verbleibende Zeit bis nächsten Sonntag 23:59 Uhr
-      setInterval(() => {
-        const now = new Date();
-        const nextReset = new Date();
-        nextReset.setDate(now.getDate() + (7 - now.getDay()) % 7);
-        nextReset.setHours(23, 59, 59, 0);
-
-        const diff = nextReset - now;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-
-        timerEl.innerText = `⏱️ Saison-Ende in: ${days}d ${hours}h ${mins}m`;
-      }, 1000);
+    function revealPrizeCode() {
+      if (leaderboard[0].name === "Du" && state.seasonScore > 0) {
+        alert(`🎉 HERZLICHEN GLÜCKWUNSCH!\nDein Gewinn-Code lautet: ${prizeData.code}`);
+      } else {
+        alert("🔒 Du musst auf Platz 1 der Rangliste stehen, um den Code freizuschalten!");
+      }
     }
 
-    startSeasonTimer();
+    function resetData() {
+      if(confirm("Möchtest du wirklich alle Spieldaten zurücksetzen?")) {
+        localStorage.removeItem('tide_tackle_rpg');
+        location.reload();
+      }
+    }
+
     updateUI();
   </script>
 </body>
