@@ -1,814 +1,314 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tide & Tackle: Ultimate Streamer RPG Edition</title>
-  <style>
-    :root {
-      --bg-dark: #060911;
-      --bg-card: #121826;
-      --panel-border: #1e293b;
-      --panel-header: #1a2336;
-      --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.25);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --gold: #facc15;
-      --purple: #c084fc;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --orange: #fb923c;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg-dark); color: var(--text); padding-bottom: 3rem; min-height: 100vh; }
-
-    /* 3D WAVE & BOBBER LOADING SCREEN */
-    #loading-screen {
-      position: fixed; inset: 0; background: radial-gradient(circle at center, #0a192f 0%, #020617 100%); z-index: 99999;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      transition: opacity 0.6s ease, visibility 0.6s; overflow: hidden;
-    }
-    .scene-3d {
-      position: relative; width: 240px; height: 240px; perspective: 1000px;
-      display: flex; justify-content: center; align-items: center; margin-bottom: 1rem;
-    }
-    .wave-grid-3d {
-      position: absolute; width: 200px; height: 200px; transform-style: preserve-3d;
-      transform: rotateX(75deg) rotateZ(0deg); animation: gridRotate 12s infinite linear;
-    }
-    @keyframes gridRotate { 0% { transform: rotateX(75deg) rotateZ(0deg); } 100% { transform: rotateX(75deg) rotateZ(360deg); } }
-    .particle-ring {
-      position: absolute; inset: 0; margin: auto; border-radius: 50%; border: 2px dashed var(--accent);
-      box-shadow: 0 0 15px var(--accent-glow), inset 0 0 15px var(--accent-glow);
-      transform-style: preserve-3d; animation: waveFloat 3s infinite ease-in-out;
-    }
-    .particle-ring:nth-child(1) { width: 80px; height: 80px; animation-delay: 0s; }
-    .particle-ring:nth-child(2) { width: 140px; height: 140px; animation-delay: -0.6s; }
-    .particle-ring:nth-child(3) { width: 190px; height: 190px; animation-delay: -1.2s; opacity: 0.5; }
-    @keyframes waveFloat {
-      0%, 100% { transform: translateZ(0px) scale(0.95); opacity: 0.4; }
-      50% { transform: translateZ(25px) scale(1.05); opacity: 0.9; border-color: #c084fc; box-shadow: 0 0 20px rgba(192, 132, 252, 0.4); }
-    }
-    .bobber-3d-wrapper {
-      position: relative; z-index: 10; transform-style: preserve-3d;
-      animation: floatBobber 3s infinite ease-in-out;
-    }
-    @keyframes floatBobber {
-      0%, 100% { transform: translateY(-16px) rotateX(10deg) rotateY(-10deg); }
-      50% { transform: translateY(12px) rotateX(-15deg) rotateY(15deg); }
-    }
-    .bobber-body { width: 46px; height: 74px; position: relative; transform-style: preserve-3d; }
-    .bobber-top {
-      position: absolute; top: 0; width: 46px; height: 37px;
-      background: linear-gradient(135deg, #ff6b6b 0%, var(--danger) 50%, #991b1b 100%);
-      border-radius: 23px 23px 4px 4px; box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4), 0 0 15px rgba(239, 68, 68, 0.5);
-    }
-    .bobber-bottom {
-      position: absolute; bottom: 0; width: 46px; height: 37px;
-      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
-      border-radius: 4px 4px 23px 23px; box-shadow: inset -4px -4px 10px rgba(0,0,0,0.3);
-    }
-    .bobber-antenna {
-      position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-      width: 4px; height: 25px; background: var(--gold); border-radius: 2px; box-shadow: 0 0 8px var(--gold);
-    }
-    .bobber-antenna-tip {
-      position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-      width: 11px; height: 11px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757;
-    }
-    .water-shadow {
-      position: absolute; bottom: 25px; width: 65px; height: 22px; background: rgba(0, 0, 0, 0.6);
-      border-radius: 50%; filter: blur(8px); transform: rotateX(75deg); animation: shadowPulse 3s infinite ease-in-out;
-    }
-    @keyframes shadowPulse {
-      0%, 100% { transform: rotateX(75deg) scale(1.3); opacity: 0.3; }
-      50% { transform: rotateX(75deg) scale(0.7); opacity: 0.8; }
-    }
-    .progress-bar-bg { width: 320px; height: 12px; background: #070d19; border-radius: 8px; overflow: hidden; margin-top: 1rem; border: 1px solid #1e293b; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
-    .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8, #facc15); transition: width 0.3s; box-shadow: 0 0 10px var(--accent); }
-
-    header { background: #020617; padding: 1.2rem; text-align: center; border-bottom: 2px solid var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    header h1 { font-size: 1.8rem; letter-spacing: 1px; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
-
-    /* USER BAR & LEVEL PROGRESSION */
-    .user-bar {
-      background: var(--bg-card); padding: 1rem 1.5rem; display: flex;
-      justify-content: space-between; align-items: center; max-width: 1200px;
-      margin: 1.2rem auto; border-radius: 12px; border: 1px solid var(--panel-border);
-      flex-wrap: wrap; gap: 1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-    }
-    .xp-bar-container { flex: 1; min-width: 240px; }
-    .xp-bar-bg { width: 100%; height: 10px; background: #020617; border-radius: 5px; overflow: hidden; margin-top: 0.4rem; border: 1px solid #1e293b; }
-    .xp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #c084fc, #e879f9); transition: width 0.4s; }
-
-    .stat-pill { background: #0b0f19; border: 1px solid #1e293b; padding: 0.5rem 0.9rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
-
-    /* NAVIGATION TABS */
-    nav { display: flex; gap: 0.5rem; background: #020617; padding: 0.8rem; overflow-x: auto; justify-content: center; border-bottom: 1px solid var(--panel-border); position: sticky; top: 0; z-index: 100; }
-    .nav-btn { background: var(--bg-card); border: 1px solid var(--panel-border); color: var(--text-muted); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; white-space: nowrap; transition: all 0.2s; font-size: 0.95rem; }
-    .nav-btn:hover { color: var(--text); border-color: var(--accent); }
-    .nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-
-    main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-
-    /* CONTROLS & FILTERS */
-    .controls-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .search-input, .select-input {
-      background: #020617; border: 1px solid var(--panel-border); color: var(--text);
-      padding: 0.7rem 1rem; border-radius: 8px; flex: 1; min-width: 220px; font-size: 0.95rem;
-    }
-    .search-input:focus, .select-input:focus { outline: none; border-color: var(--accent); }
-
-    /* GRID & CARDS */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.2rem; }
-    .card { background: var(--bg-card); border: 1px solid var(--panel-border); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; }
-    .card:hover { transform: translateY(-3px); border-color: #334155; }
-
-    .btn-action {
-      background: var(--accent); color: #000; border: none;
-      padding: 0.65rem; border-radius: 8px; cursor: pointer;
-      font-weight: 700; margin-top: 1rem; width: 100%; transition: background 0.2s, opacity 0.2s;
-    }
-    .btn-action:hover { background: #0284c7; color: #fff; }
-    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; background: #334155; color: #94a3b8; }
-
-    .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
-    .tier-A { background: #334155; color: #f8fafc; }
-    .tier-B { background: #1e3a8a; color: #93c5fd; }
-    .tier-C { background: #065f46; color: #a7f3d0; }
-    .tier-D { background: #854d0e; color: #fef08a; }
-    .tier-E { background: #7c2d12; color: #fed7aa; }
-    .tier-F { background: #701a75; color: #f5d0fe; }
-    .tier-G { background: #0f766e; color: #99f6e4; }
-    .tier-H { background: #9a3412; color: #ffedd5; }
-    .tier-I { background: #831843; color: #fbcfe8; }
-    .tier-J { background: #581c87; color: var(--gold); border: 1px solid var(--gold); box-shadow: 0 0 8px rgba(250, 204, 21, 0.4); }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* AVATAR CUSTOMIZER LAYOUT */
-    .avatar-wrapper { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
-    .avatar-preview-box {
-      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
-      border: 2px solid var(--accent); border-radius: 16px; padding: 2rem;
-      display: flex; flex-direction: column; align-items: center; min-width: 280px; box-shadow: 0 0 25px var(--accent-glow);
-    }
-    .avatar-svg-container { width: 200px; height: 200px; position: relative; margin-bottom: 1rem; }
-    .avatar-options { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 1.2rem; }
-    .option-group { background: var(--bg-card); border: 1px solid var(--panel-border); border-radius: 10px; padding: 1rem; }
-    .option-group h4 { margin-bottom: 0.8rem; color: var(--accent); font-size: 1rem; }
-    .color-btn-grid { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .color-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #334155; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
-    .color-btn:hover, .color-btn.active { transform: scale(1.15); border-color: var(--text); }
-
-    /* FISH DEX STYLES */
-    .dex-stats-header { background: var(--bg-card); border: 1px solid var(--panel-border); border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem; text-align: center; }
-    .dex-card { position: relative; overflow: hidden; }
-    .dex-card.locked { opacity: 0.4; filter: grayscale(1); }
-    .dex-card.locked::after { content: '🔒 UNENTDECKT'; position: absolute; inset: 0; background: rgba(2, 6, 23, 0.85); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--text-muted); letter-spacing: 1px; font-size: 0.9rem; }
-    .fish-icon-frame { width: 100%; height: 110px; background: #020617; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 0.8rem; border: 1px solid #1e293b; font-size: 3rem; }
-
-    /* SIMULATOR FISHING PANEL */
-    .sim-box { background: var(--bg-card); border: 2px dashed var(--accent); border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
-    .catch-log { background: #020617; border: 1px solid var(--panel-border); border-radius: 8px; padding: 1rem; max-height: 180px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; text-align: left; color: #a7f3d0; margin-top: 1rem; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎣 Angel Game - Aquarium & Ausrüstung</title>
+<style>
+  :root {
+    --bg: #0B0E14; --panel: #141923; --panel-hover: #1E2533; --border: #2B1D45;
+    --purple: #772CE8; --purple-hover: #9146FF; --gold: #E6C875; --text: #FFFFFF; --muted: #8A92A6;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 4px; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 20px; font-size: 14px; }
+  .setup-box { max-width: 520px; margin: 60px auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-align: center; }
+  .setup-box input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+  .setup-box button { background: var(--purple); color: #fff; border: none; border-radius: 8px; padding: 12px 20px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
+  .setup-box button:hover { background: var(--purple-hover); }
+  .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+  .tab-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .view { display: none; max-width: 1000px; margin: 0 auto; }
+  .view.active { display: block; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .slot { background: radial-gradient(circle at 50% 30%, #1b3a52, #0b1a26); border: 2px dashed rgba(79,195,247,0.4); border-radius: 14px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 8px; text-align: center; }
+  .slot.filled { border-style: solid; border-color: #4FC3F7; }
+  .slot .rate { font-size: 11px; color: #4ADE80; margin-top: 4px; }
+  .slot .remove { position: absolute; top: 4px; right: 6px; color: #ff6b6b; font-size: 12px; cursor: pointer; }
+  .fishcard { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px; cursor: pointer; }
+  .fishcard.placed { opacity: 0.35; cursor: not-allowed; }
+  .rarity-common { color: #C7CCD8; } .rarity-rare { color: #4FC3F7; } .rarity-epic { color: #CE93D8; }
+  .rarity-legendary { color: #FFB74D; } .rarity-mythic { color: var(--gold); }
+  .shiny { text-shadow: 0 0 8px var(--gold); }
+  #pendingBar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .btn { background: #4ADE80; color: #0B0E14; border: none; border-radius: 8px; padding: 10px 18px; font-weight: bold; cursor: pointer; }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.gold { background: var(--gold); }
+  .btn.purple { background: var(--purple); color: #fff; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .rod-card, .loc-card { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .rod-card.equipped, .loc-card.active { border-color: var(--gold); }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--purple); }
+  .stat-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 10px; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 22px; font-weight: bold; color: var(--gold); }
+  .stat .label { font-size: 11px; color: var(--muted); }
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--border); padding: 12px 20px; border-radius: 10px; display: none; z-index: 99; }
+</style>
 </head>
 <body>
 
-  <!-- 3D WAVE & BOBBER LOADING SCREEN -->
-  <div id="loading-screen">
-    <div class="scene-3d">
-      <div class="wave-grid-3d">
-        <div class="particle-ring"></div>
-        <div class="particle-ring"></div>
-        <div class="particle-ring"></div>
+<h1>🎣 Angel Game</h1>
+<div class="sub" id="userLabel">Lade...</div>
+
+<div id="setupBox" class="setup-box" style="display:none;">
+  <h3>Verbindung einrichten</h3>
+  <p class="hint">Rufe diese Seite über den <b>!aquarium</b>-Befehl im Twitch-Chat des Streamers auf - dann werden Nutzername & Server-Adresse automatisch eingetragen. Alternativ manuell:</p>
+  <input id="inUser" placeholder="Dein Twitch-Nutzername">
+  <input id="inApi" placeholder="Server-Adresse (z.B. https://xyz.ngrok-free.app)">
+  <button onclick="manualStart()">Verbinden</button>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="aquarium" onclick="switchTab('aquarium')">🐠 Aquarium</button>
+    <button class="tab-btn" data-tab="equipment" onclick="switchTab('equipment')">🎣 Ausrüstung & Gewässer</button>
+  </div>
+
+  <div class="view active" id="view-aquarium">
+    <div class="panel">
+      <div id="pendingBar">
+        <div>Passiv-Einnahmen: <b id="pendingCoins">0</b> <span id="coinsName1">Coins</span></div>
+        <button class="btn" onclick="collectCoins()">💰 Einsammeln</button>
       </div>
-      <div class="bobber-3d-wrapper">
-        <div class="bobber-body">
-          <div class="bobber-antenna-tip"></div>
-          <div class="bobber-antenna"></div>
-          <div class="bobber-top"></div>
-          <div class="bobber-bottom"></div>
-        </div>
-      </div>
-      <div class="water-shadow"></div>
     </div>
-    <h2 style="color:var(--accent); font-size:1.7rem; letter-spacing:1px; text-shadow:0 0 12px var(--accent-glow);">Tide & Tackle: Streamer RPG</h2>
-    <small id="load-text" style="color:var(--text-muted); margin-top:0.5rem; font-size:0.95rem; font-family:monospace;">Synchronisiere Wellenphysik...</small>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="load-bar"></div>
+    <div class="panel">
+      <div class="grid" id="tank"></div>
+      <div class="hint">Klicke auf einen leeren Slot, dann auf einen Fisch aus deinem Bestand, um ihn einzusetzen.</div>
+    </div>
+    <div class="panel">
+      <h3 style="margin-bottom:10px;color:#4FC3F7;">Mein Fischbestand</h3>
+      <div class="grid" id="inventory"></div>
     </div>
   </div>
 
-  <header>
-    <h1>🎣 Tide & Tackle: Ultimate Streamer RPG</h1>
-    <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">100 Ruten • 100 Köder • 100 Orte • Avatar Studio • Fish-Dex • Quest Engine</p>
-  </header>
-
-  <!-- USER STATUS BAR -->
-  <div class="user-bar">
-    <div style="display:flex; align-items:center; gap:1rem;">
-      <div id="user-bar-avatar" style="width:48px; height:48px; border-radius:50%; background:#020617; border:2px solid var(--accent); overflow:hidden; display:flex; justify-content:center; align-items:center;"></div>
-      <div>
-        <div style="font-size:1.1rem; font-weight:bold;"><span id="u-name" style="color:var(--accent)">TwitchViewer</span></div>
-        <div style="font-size:0.85rem; color:var(--purple); font-weight:600;">Level <span id="u-lvl">1</span> Angler</div>
+  <div class="view" id="view-equipment">
+    <div class="panel">
+      <div class="stat-row">
+        <div class="stat"><div class="num" id="statCoins">0</div><div class="label" id="coinsName2">Coins</div></div>
+        <div class="stat"><div class="num" id="statLevel">1</div><div class="label">Angel-Level</div></div>
+        <div class="stat"><div class="num" id="statCatches">0</div><div class="label">Fänge gesamt</div></div>
       </div>
     </div>
-
-    <div class="xp-bar-container">
-      <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
-        <span>XP Fortschritt</span>
-        <span><strong id="xp-text" style="color:var(--text)">0/100</strong> XP</span>
-      </div>
-      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-fill"></div></div>
+    <div class="panel">
+      <h3 style="margin-bottom:10px;color:#4FC3F7;">🎣 Ruten</h3>
+      <div id="rodsList"></div>
     </div>
-
-    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-      <div class="stat-pill">💰 <span id="u-gold" style="color:var(--gold)">1,000</span>g</div>
-      <div class="stat-pill">🔩 <span id="u-mats" style="color:var(--success)">15</span> Mats</div>
-      <div class="stat-pill">🏆 <span id="u-prestige" style="color:var(--accent)">0</span> Prestige</div>
+    <div class="panel">
+      <h3 style="margin-bottom:10px;color:#4FC3F7;">🌊 Gewässer</h3>
+      <div id="locsList"></div>
     </div>
   </div>
+</div>
 
-  <!-- NAVIGATION TABS -->
-  <nav>
-    <button class="nav-btn active" onclick="openTab('sim', event)">🎣 Angeln & Testen</button>
-    <button class="nav-btn" onclick="openTab('avatar', event)">👤 Charakter-Studio</button>
-    <button class="nav-btn" onclick="openTab('dex', event)">📖 Fish-Dex (100 Fische)</button>
-    <button class="nav-btn" onclick="openTab('rods', event)">🎣 100 Ruten</button>
-    <button class="nav-btn" onclick="openTab('baits', event)">🪱 100 Köder</button>
-    <button class="nav-btn" onclick="openTab('locs', event)">🗺️ 100 Gewässer</button>
-    <button class="nav-btn" onclick="openTab('quests', event)">📜 Quests & Crafting</button>
-  </nav>
+<div id="toast"></div>
 
-  <main>
-    <!-- GLOBAL CONTROLS BAR (FOR CATALOG TABS) -->
-    <div class="controls-bar" id="catalog-controls" style="display:none;">
-      <input type="text" id="search-box" class="search-input" placeholder="Suchen nach Name, ID oder Tier..." oninput="filterItems()">
-      <select id="tier-filter" class="select-input" onchange="filterItems()">
-        <option value="ALL">Alle Tiers (A bis J)</option>
-        <option value="A">Tier A (Anfänger / Weiher)</option>
-        <option value="B">Tier B (Fluss / Teich)</option>
-        <option value="C">Tier C (See / Spezialist)</option>
-        <option value="D">Tier D (Küste / Fjord)</option>
-        <option value="E">Tier E (Tiefsee / Marine)</option>
-        <option value="F">Tier F (Meister / Offshore)</option>
-        <option value="G">Tier G (Eismeer / Tropen)</option>
-        <option value="H">Tier H (Monster / Urwald)</option>
-        <option value="I">Tier I (Exotisch / Abgrund)</option>
-        <option value="J">Tier J (Mythisch / Cyber-Atlantis)</option>
-      </select>
-    </div>
+<script>
+const params = new URLSearchParams(window.location.search);
+let user = (params.get('user') || localStorage.getItem('angel_user') || '').toLowerCase();
+let api = (params.get('api') || localStorage.getItem('angel_api') || '').replace(/\/$/, '');
+let selectedSlot = null;
+let coinsName = 'Coins';
 
-    <!-- TAB 0: ANGEL-SIMULATOR -->
-    <div id="tab-sim" class="tab-content active">
-      <div class="sim-box">
-        <h2 style="color:var(--accent); margin-bottom:0.5rem;">🎣 Twitch Stream Interaktions-Test</h2>
-        <p style="color:var(--text-muted); margin-bottom:1.2rem;">Klicke den Button unten, um den Chat-Befehl <code>!angeln</code> zu simulieren. Gewinne Gold, XP, Fang-Einträge für deinen Fish-Dex und Materialien!</p>
-        
-        <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-          <div style="background:#020617; padding:0.8rem 1.2rem; border-radius:8px; border:1px solid #1e293b;">
-            <small style="color:var(--text-muted); display:block;">Ausrüstung Rute:</small>
-            <strong id="sim-rod-display" style="color:var(--accent)">R001 - Teleskop Light 1</strong>
-          </div>
-          <div style="background:#020617; padding:0.8rem 1.2rem; border-radius:8px; border:1px solid #1e293b;">
-            <small style="color:var(--text-muted); display:block;">Ausrüstung Köder:</small>
-            <strong id="sim-bait-display" style="color:var(--success)">K001 - Tauwurm 1</strong>
-          </div>
-          <div style="background:#020617; padding:0.8rem 1.2rem; border-radius:8px; border:1px solid #1e293b;">
-            <small style="color:var(--text-muted); display:block;">Gewässer Ort:</small>
-            <strong id="sim-loc-display" style="color:var(--purple)">O001 - Dorfweiher St. Ulrich 1</strong>
-          </div>
-        </div>
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
 
-        <button class="btn-action" style="max-width:320px; font-size:1.1rem; padding:0.9rem;" onclick="simulateFishing()">🎣 !angeln Ausführen</button>
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'equipment') loadEquipment();
+}
 
-        <div class="catch-log" id="sim-log">
-          <div>[System] Willkommen bei Tide & Tackle! Wähle Equipment, passe deinen Avatar an und wirf die Angel aus.</div>
-        </div>
-      </div>
-    </div>
+function manualStart() {
+  user = document.getElementById('inUser').value.trim().toLowerCase();
+  api = document.getElementById('inApi').value.trim().replace(/\/$/, '');
+  if (!user || !api) { showToast('Bitte Nutzername und Server-Adresse angeben.'); return; }
+  localStorage.setItem('angel_user', user);
+  localStorage.setItem('angel_api', api);
+  init();
+}
 
-    <!-- TAB 1: CHARAKTER STUDIO -->
-    <div id="tab-avatar" class="tab-content">
-      <h2 style="margin-bottom:1rem; text-align:center;">👤 Angler Avatar Studio</h2>
-      <div class="avatar-wrapper">
-        <div class="avatar-preview-box">
-          <div class="avatar-svg-container" id="avatar-svg-target"></div>
-          <h3 id="avatar-preview-title" style="color:var(--accent); margin-top:0.5rem;">Meister Angler</h3>
-          <small style="color:var(--text-muted)">Gefärbt & Angepasst</small>
-        </div>
+function init() {
+  if (!user || !api) {
+    document.getElementById('setupBox').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('userLabel').innerText = 'Keine Verbindung - bitte über !aquarium im Chat aufrufen oder unten manuell eintragen.';
+    return;
+  }
+  document.getElementById('setupBox').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('userLabel').innerText = '@' + user;
+  loadAquarium();
+}
 
-        <div class="avatar-options">
-          <div class="option-group">
-            <h4>1. Hautton wählen</h4>
-            <div class="color-btn-grid" id="skin-colors"></div>
-          </div>
+async function apiGet(path) {
+  const res = await fetch(api + path + (path.includes('?') ? '&' : '?') + '_=' + Date.now());
+  return res.json();
+}
 
-          <div class="option-group">
-            <h4>2. Angelkleidung / Westenfarbe</h4>
-            <div class="color-btn-grid" id="outfit-colors"></div>
-          </div>
+// ---------- Aquarium ----------
+async function loadAquarium() {
+  const data = await apiGet('/aquarium_data?user=' + encodeURIComponent(user));
+  coinsName = data.coins_name || 'Coins';
+  document.getElementById('coinsName1').innerText = coinsName;
+  document.getElementById('coinsName2').innerText = coinsName;
+  renderTank(data);
+  renderInventory(data);
+  document.getElementById('pendingCoins').innerText = data.pending_coins;
+}
 
-          <div class="option-group">
-            <h4>3. Anglerhut / Mütze Color</h4>
-            <div class="color-btn-grid" id="hat-colors"></div>
-          </div>
+function renderTank(data) {
+  const tank = document.getElementById('tank');
+  tank.innerHTML = '';
+  const bySlot = {};
+  (data.slots || []).forEach(s => bySlot[s.slot_index] = s);
+  for (let i = 0; i < data.max_slots; i++) {
+    const div = document.createElement('div');
+    const s = bySlot[i];
+    div.className = 'slot' + (s ? ' filled' : '');
+    if (s) {
+      div.innerHTML = '<span class="remove" onclick="event.stopPropagation();removeFish(' + i + ')">✖</span>' +
+        '<div style="font-size:32px;">' + (s.is_shiny ? '✨🐟' : '🐟') + '</div>' +
+        '<div class="rarity-' + s.rarity + '">' + s.species + '</div>' +
+        '<div class="rate">+' + s.coins_per_hour + '/h</div>';
+    } else {
+      div.innerText = 'Leerer Slot #' + (i + 1);
+      div.onclick = () => { selectedSlot = i; showToast('Slot ' + (i + 1) + ' gewählt - klicke jetzt auf einen Fisch unten.'); };
+    }
+    tank.appendChild(div);
+  }
+}
 
-          <div class="option-group">
-            <h4>4. Bart- & Haarfarbe</h4>
-            <div class="color-btn-grid" id="hair-colors"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: FISH DEX -->
-    <div id="tab-dex" class="tab-content">
-      <div class="dex-stats-header">
-        <div>
-          <div style="font-size:0.85rem; color:var(--text-muted);">Gefangene Arten</div>
-          <div style="font-size:1.4rem; font-weight:bold; color:var(--accent);"><span id="dex-count">0</span> / 100</div>
-        </div>
-        <div>
-          <div style="font-size:0.85rem; color:var(--text-muted);">Gesamte Fänge</div>
-          <div style="font-size:1.4rem; font-weight:bold; color:var(--gold);"><span id="dex-total-catches">0</span> Fische</div>
-        </div>
-        <div>
-          <div style="font-size:0.85rem; color:var(--text-muted);">Komplettierungsgrad</div>
-          <div style="font-size:1.4rem; font-weight:bold; color:var(--success);"><span id="dex-percent">0</span>%</div>
-        </div>
-      </div>
-      <div class="grid" id="dex-grid"></div>
-    </div>
-
-    <!-- TAB 3: 100 RUTEN -->
-    <div id="tab-rods" class="tab-content">
-      <div class="grid" id="rods-grid"></div>
-    </div>
-
-    <!-- TAB 4: 100 KÖDER -->
-    <div id="tab-baits" class="tab-content">
-      <div class="grid" id="baits-grid"></div>
-    </div>
-
-    <!-- TAB 5: 100 ORTE -->
-    <div id="tab-locs" class="tab-content">
-      <div class="grid" id="locs-grid"></div>
-    </div>
-
-    <!-- TAB 6: QUESTS & CRAFTING -->
-    <div id="tab-quests" class="tab-content">
-      <h2 style="margin-bottom:1rem;">📜 Stream Quests & Material-Crafting</h2>
-      
-      <div style="margin-bottom:2rem;">
-        <h3 style="color:var(--accent); margin-bottom:0.8rem;">Aktive Quests</h3>
-        <div class="grid" id="quests-grid"></div>
-      </div>
-
-      <div>
-        <h3 style="color:var(--success); margin-bottom:0.8rem;">⚒️ Müll-Recycling & Werkbank</h3>
-        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">Recycle aus Fängen erhaltene Müll-Materialien zu exklusiven Buffs und Booster-Ködern.</p>
-        <div class="grid" id="crafting-grid"></div>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    // --- 1. GAME DATA GENERATORS (100 RODS, 100 BAITS, 100 LOCATIONS, 100 FISHES) ---
-    const TIERS = ['A','B','C','D','E','F','G','H','I','J'];
-    
-    const ROD_NAMES = ["Teleskop Light", "Carbon Stippe", "Micro Jigger", "Zander Taktik", "Karpfen Klassiker", "Feeder Heavy", "Tremarella", "Boje Monster", "Fliegenrute", "Brandungs Titan", "Norwegen Seil", "Tenkara Traditional", "Nano Graphen", "Cyber Rod Pro"];
-    const BAIT_NAMES = ["Tauwurm", "Maden-Mix", "Monster Crab Boilie", "Action Shad", "Deep Runner Wobbler", "Spinner Silber", "Goldkopf Nymphe", "Wattwurm", "Slow Jig Metal", "Knoblauch Paste", "Cyber Lure"];
-    const LOC_NAMES = ["Dorfweiher St. Ulrich", "Rhein-Buhne Köln", "Bodensee Tiefen", "Schwedischer Schärengarten", "Forellenhof Quellgrund", "Ebro-Stausee", "Ostsee Strand", "Saltstraumen Strahl", "Amazonas Strom", "Bermuda Dreieck"];
-    const FISH_NAMES = [
-      "Rotfeder", "Flussbarsch", "Brachse", "Regenbogenforelle", "Schleie", "Spiegelkarpfen", "Zander", "Hecht", "Aal", "Wels",
-      "Dorsch", "Kohlfisch", "Makrele", "Meerforelle", "Steinbeißer", "Heilbutt", "Thunfisch", "Schwertfisch", "Barrakuda", "Arapaima",
-      "Piranha", "Tigerfisch", "Riesen-Manta", "Laternenfisch", "Paddelfisch", "Riemenfisch", "Cyber-Lachs", "Meeres-Drache", "Leviathan", "Mythos-Poseidon"
-    ];
-    const FISH_ICONS = ["🐟", "🐠", "🐡", "🦈", "🐙", "🦑", "🦐", "🦞"];
-
-    const RODS = Array.from({length: 100}, (_, i) => {
-      const tIdx = Math.floor(i / 10);
-      return {
-        id: i, code: `R${String(i+1).padStart(3, '0')}`,
-        name: `${ROD_NAMES[i % ROD_NAMES.length]} ${i+1}`,
-        tier: TIERS[tIdx], cost: (tIdx + 1) * 150 + (i * 25), power: (i + 1) * 6
+function renderInventory(data) {
+  const inv = document.getElementById('inventory');
+  inv.innerHTML = '';
+  (data.fishes || []).forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'fishcard' + (f.in_aquarium ? ' placed' : '');
+    div.innerHTML = '<div class="rarity-' + f.rarity + (f.is_shiny ? ' shiny' : '') + '">' + (f.is_shiny ? '✨ ' : '') + f.species + '</div>' +
+      '<div class="hint">' + f.length_cm + 'cm / ' + f.weight_kg + 'kg</div>' +
+      '<div class="hint">Wert: ' + f.base_value + '</div>';
+    if (!f.in_aquarium) {
+      div.onclick = () => {
+        if (selectedSlot === null) { showToast('Zuerst einen leeren Slot oben auswählen.'); return; }
+        placeFish(f.id, selectedSlot);
       };
-    });
-
-    const BAITS = Array.from({length: 100}, (_, i) => {
-      const tIdx = Math.floor(i / 10);
-      return {
-        id: i, code: `K${String(i+1).padStart(3, '0')}`,
-        name: `${BAIT_NAMES[i % BAIT_NAMES.length]} ${i+1}`,
-        tier: TIERS[tIdx], cost: (tIdx + 1) * 60 + (i * 10), attract: (i + 1) * 2.5
-      };
-    });
-
-    const LOCS = Array.from({length: 100}, (_, i) => {
-      const tIdx = Math.floor(i / 10);
-      return {
-        id: i, code: `O${String(i+1).padStart(3, '0')}`,
-        name: `${LOC_NAMES[i % LOC_NAMES.length]} ${i+1}`,
-        tier: TIERS[tIdx], cost: (tIdx + 1) * 350 + (i * 60), rarityBonus: (i + 1) * 3
-      };
-    });
-
-    const FISHES = Array.from({length: 100}, (_, i) => {
-      const tIdx = Math.floor(i / 10);
-      return {
-        id: i, code: `F${String(i+1).padStart(3, '0')}`,
-        name: `${FISH_NAMES[i % FISH_NAMES.length]} ${i+1}`,
-        tier: TIERS[tIdx],
-        icon: FISH_ICONS[i % FISH_ICONS.length],
-        value: (tIdx + 1) * 20 + (i * 5),
-        xp: (tIdx + 1) * 15 + (i * 3)
-      };
-    });
-
-    // --- 2. USER STATE & LOCAL STORAGE ---
-    let user = JSON.parse(localStorage.getItem('tt_rpg_full_state')) || {
-      name: "TwitchViewer",
-      lvl: 1, xp: 0, maxXp: 100,
-      gold: 1000, mats: 15, prestige: 0,
-      currentRod: 0, currentBait: 0, currentLoc: 0,
-      ownedRods: [0], ownedBaits: [0], unlockedLocs: [0],
-      catches: {},
-      avatar: { skin: '#f1c27d', outfit: '#0284c7', hat: '#1e293b', hair: '#451a03' },
-      quests: [
-        { id: 1, title: "Ersthelfer der Gewässer", desc: "Sammle 3x Müll beim Angeln", rewardGold: 150, rewardXp: 60, rewardMats: 5, done: false },
-        { id: 2, title: "Fisch-Sammler", desc: "Fange 5 Fische im Simulator", rewardGold: 300, rewardXp: 150, rewardMats: 3, done: false },
-        { id: 3, title: "Tiefsee-Pionier", desc: "Reise an einen Tier-C Ort", rewardGold: 600, rewardXp: 350, rewardMats: 10, done: false }
-      ]
-    };
-
-    const CRAFTING_RECIPES = [
-      { id: 'c1', name: '🪱 Bio-Köder-Pack', reqMats: 5, reward: '100g + 50 XP Booster', gold: 100, xp: 50 },
-      { id: 'c2', name: '🎋 Carbon-Verstärkung', reqMats: 12, reward: '+150 XP Ruten-Tuning', gold: 0, xp: 150 },
-      { id: 'c3', name: '⚡ Elektro-Lure (Legendär)', reqMats: 30, reward: '500g + 400 XP Super-Mischung', gold: 500, xp: 400 }
-    ];
-
-    // --- 3. AVATAR SVG ENGINE ---
-    const PALETTES = {
-      skin: ['#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#ffdbac', '#523318'],
-      outfit: ['#0284c7', '#059669', '#dc2626', '#7c3aed', '#d97706', '#334155'],
-      hat: ['#1e293b', '#0f172a', '#b91c1c', '#047857', '#b45309', '#6b21a8'],
-      hair: ['#451a03', '#1c1917', '#b45309', '#f59e0b', '#94a3b8', '#dc2626']
-    };
-
-    function generateAvatarSVG(colors, size=200) {
-      return `
-        <svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="45" fill="#090d16" stroke="#334155" stroke-width="2"/>
-          <path d="M 25 90 C 25 65, 75 65, 75 90 Z" fill="${colors.outfit}" />
-          <polygon points="42,70 58,70 50,85" fill="#ffffff"/>
-          <line x1="33" y1="68" x2="33" y2="90" stroke="#0f172a" stroke-width="3"/>
-          <line x1="67" y1="68" x2="67" y2="90" stroke="#0f172a" stroke-width="3"/>
-          <rect x="44" y="55" width="12" height="12" fill="${colors.skin}"/>
-          <ellipse cx="50" cy="42" rx="18" ry="20" fill="${colors.skin}"/>
-          <path d="M 32 42 C 32 60, 68 60, 68 42 C 68 52, 32 52, 32 42 Z" fill="${colors.hair}"/>
-          <circle cx="43" cy="38" r="2.5" fill="#0f172a"/>
-          <circle cx="57" cy="38" r="2.5" fill="#0f172a"/>
-          <circle cx="44" cy="37" r="0.8" fill="#ffffff"/>
-          <circle cx="58" cy="37" r="0.8" fill="#ffffff"/>
-          <path d="M 45 48 Q 50 52 55 48" stroke="#0f172a" stroke-width="1.5" fill="none"/>
-          <path d="M 25 30 Q 50 25 75 30 L 78 33 Q 50 29 22 33 Z" fill="${colors.hat}"/>
-          <path d="M 32 29 C 32 18, 68 18, 68 29 Z" fill="${colors.hat}"/>
-          <line x1="32" y1="26" x2="68" y2="26" stroke="${colors.outfit}" stroke-width="2"/>
-        </svg>
-      `;
     }
+    inv.appendChild(div);
+  });
+}
 
-    function initAvatarStudio() {
-      const target = document.getElementById('avatar-svg-target');
-      const smallTarget = document.getElementById('user-bar-avatar');
-      
-      target.innerHTML = generateAvatarSVG(user.avatar, 200);
-      smallTarget.innerHTML = generateAvatarSVG(user.avatar, 48);
+async function placeFish(fishId, slot) {
+  const r = await apiGet('/aquarium_place?user=' + encodeURIComponent(user) + '&fish_id=' + fishId + '&slot=' + slot + '&action=place');
+  selectedSlot = null;
+  if (r.ok) { renderTank(r.data); renderInventory(r.data); } else { showToast(r.error || 'Fehler'); }
+}
 
-      ['skin', 'outfit', 'hat', 'hair'].forEach(type => {
-        const container = document.getElementById(`${type}-colors`);
-        container.innerHTML = PALETTES[type].map(c => `
-          <div class="color-btn ${user.avatar[type] === c ? 'active' : ''}" 
-               style="background:${c};" 
-               onclick="updateAvatarColor('${type}', '${c}')"></div>
-        `).join('');
-      });
+async function removeFish(slot) {
+  const r = await apiGet('/aquarium_place?user=' + encodeURIComponent(user) + '&fish_id=0&slot=' + slot + '&action=remove');
+  if (r.ok) { renderTank(r.data); renderInventory(r.data); } else { showToast(r.error || 'Fehler'); }
+}
+
+async function collectCoins() {
+  const r = await apiGet('/aquarium_collect?user=' + encodeURIComponent(user));
+  if (r.ok) {
+    showToast('+' + r.collected + ' ' + coinsName + ' eingesammelt!');
+    renderTank(r.data); renderInventory(r.data);
+    document.getElementById('pendingCoins').innerText = r.data.pending_coins;
+  } else { showToast(r.error || 'Fehler'); }
+}
+
+// ---------- Ausrüstung & Gewässer ----------
+async function loadEquipment() {
+  const data = await apiGet('/equipment_data?user=' + encodeURIComponent(user));
+  if (!data.ok) { showToast(data.error || 'Fehler beim Laden'); return; }
+  coinsName = data.coins_name || coinsName;
+  document.getElementById('coinsName2').innerText = coinsName;
+  document.getElementById('statCoins').innerText = data.coins;
+  document.getElementById('statLevel').innerText = data.fish_level;
+  document.getElementById('statCatches').innerText = data.total_catches;
+  renderRods(data.rods);
+  renderLocations(data.locations);
+}
+
+function renderRods(rods) {
+  const box = document.getElementById('rodsList');
+  box.innerHTML = '';
+  (rods || []).forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'rod-card' + (r.equipped ? ' equipped' : '');
+    let actionHtml = '';
+    if (!r.owned) {
+      actionHtml = '<button class="btn purple" onclick="buyRod(' + r.id + ')">Kaufen (' + r.price + ')</button>';
+    } else if (r.equipped && r.upgrade_cost !== null) {
+      actionHtml = '<button class="btn gold" onclick="upgradeRod()">Upgrade (' + r.upgrade_cost + ')</button>';
+    } else if (r.equipped) {
+      actionHtml = '<span class="badge">MAX-LEVEL</span>';
+    } else {
+      actionHtml = '<span class="badge">Im Besitz</span>';
     }
+    div.innerHTML = '<div><b>' + r.name + '</b>' + (r.equipped ? ' <span class="badge">Ausgerüstet</span>' : '') +
+      '<div class="hint">' + (r.owned ? ('Stufe ' + r.level + '/' + r.max_level) : ('Preis: ' + r.price + ' ' + coinsName)) + '</div></div>' +
+      '<div>' + actionHtml + '</div>';
+    box.appendChild(div);
+  });
+}
 
-    function updateAvatarColor(type, color) {
-      user.avatar[type] = color;
-      saveState();
-      initAvatarStudio();
+function renderLocations(locs) {
+  const box = document.getElementById('locsList');
+  box.innerHTML = '';
+  (locs || []).forEach(l => {
+    const div = document.createElement('div');
+    div.className = 'loc-card' + (l.active ? ' active' : '');
+    let actionHtml = '';
+    if (l.active) {
+      actionHtml = '<span class="badge">Aktuell hier</span>';
+    } else if (!l.reachable) {
+      actionHtml = '<span class="badge">Level ' + l.required_level + ' nötig</span>';
+    } else {
+      const label = l.unlocked ? 'Reisen' : ('Freischalten (' + l.travel_cost + ')');
+      actionHtml = '<button class="btn purple" onclick="travel(' + l.id + ')">' + label + '</button>';
     }
+    div.innerHTML = '<div><b>' + l.name + '</b>' + (l.active ? ' <span class="badge">Aktiv</span>' : '') +
+      '<div class="hint">Level ' + l.required_level + '+ ' + (l.unlocked ? '(freigeschaltet)' : ('| einmalig ' + l.travel_cost + ' ' + coinsName)) + '</div></div>' +
+      '<div>' + actionHtml + '</div>';
+    box.appendChild(div);
+  });
+}
 
-    // --- 4. NAVIGATION & TABS ---
-    let currentTab = 'sim';
-    function openTab(tab, e) {
-      currentTab = tab;
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tab).classList.add('active');
-      if(e) e.currentTarget.classList.add('active');
+async function buyRod(rodId) {
+  const r = await apiGet('/equipment_buy?user=' + encodeURIComponent(user) + '&rod_id=' + rodId);
+  showToast(r.ok ? r.message : (r.error || 'Fehler'));
+  if (r.ok) loadEquipment();
+}
 
-      const controls = document.getElementById('catalog-controls');
-      if(['rods', 'baits', 'locs'].includes(tab)) {
-        controls.style.display = 'flex';
-        filterItems();
-      } else {
-        controls.style.display = 'none';
-      }
+async function upgradeRod() {
+  const r = await apiGet('/equipment_upgrade?user=' + encodeURIComponent(user));
+  showToast(r.ok ? r.message : (r.error || 'Fehler'));
+  if (r.ok) loadEquipment();
+}
 
-      if(tab === 'dex') renderDex();
-    }
+async function travel(locId) {
+  const r = await apiGet('/equipment_travel?user=' + encodeURIComponent(user) + '&location_id=' + locId);
+  showToast(r.ok ? r.message : (r.error || 'Fehler'));
+  if (r.ok) loadEquipment();
+}
 
-    // --- 5. RENDER & FILTER LOGIC ---
-    function filterItems() {
-      const q = document.getElementById('search-box').value.toLowerCase();
-      const tier = document.getElementById('tier-filter').value;
-
-      if(currentTab === 'rods') renderRods(q, tier);
-      if(currentTab === 'baits') renderBaits(q, tier);
-      if(currentTab === 'locs') renderLocs(q, tier);
-    }
-
-    function renderRods(q, tier) {
-      const grid = document.getElementById('rods-grid');
-      const filtered = RODS.filter(r => (tier === 'ALL' || r.tier === tier) && (r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(r => {
-        const owned = user.ownedRods.includes(r.id);
-        const active = user.currentRod === r.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${r.tier}">Tier ${r.tier}</span> <small style="color:var(--text-muted)">${r.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${r.name}</h4>
-              <small style="color:var(--accent)">Stärke: +${r.power} Pkt.</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${r.cost.toLocaleString()} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyRod(${r.id})">
-                ${active ? 'Ausgerüstet' : (owned ? 'Ausrüsten' : 'Kaufen')}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderBaits(q, tier) {
-      const grid = document.getElementById('baits-grid');
-      const filtered = BAITS.filter(b => (tier === 'ALL' || b.tier === tier) && (b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(b => {
-        const owned = user.ownedBaits.includes(b.id);
-        const active = user.currentBait === b.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${b.tier}">Tier ${b.tier}</span> <small style="color:var(--text-muted)">${b.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${b.name}</h4>
-              <small style="color:var(--success)">Lockwirkung: +${b.attract}%</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${b.cost.toLocaleString()} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyBait(${b.id})">
-                ${active ? 'Aktiviert' : (owned ? 'Aktivieren' : 'Kaufen')}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderLocs(q, tier) {
-      const grid = document.getElementById('locs-grid');
-      const filtered = LOCS.filter(l => (tier === 'ALL' || l.tier === tier) && (l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(l => {
-        const unlocked = user.unlockedLocs.includes(l.id);
-        const active = user.currentLoc === l.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${l.tier}">Tier ${l.tier}</span> <small style="color:var(--text-muted)">${l.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${l.name}</h4>
-              <small style="color:var(--purple)">Seltenheits-Bonus: +${l.rarityBonus}%</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${l.cost.toLocaleString()} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="unlockLoc(${l.id})">
-                ${active ? 'Hier Angeln' : (unlocked ? 'Reisen' : 'Freischalten')}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // --- 6. FISH DEX SYSTEM ---
-    function renderDex() {
-      const grid = document.getElementById('dex-grid');
-      const caughtCount = Object.keys(user.catches).length;
-      const totalCatches = Object.values(user.catches).reduce((a, b) => a + b, 0);
-
-      document.getElementById('dex-count').innerText = caughtCount;
-      document.getElementById('dex-total-catches').innerText = totalCatches;
-      document.getElementById('dex-percent').innerText = Math.round((caughtCount / 100) * 100);
-
-      grid.innerHTML = FISHES.map(f => {
-        const count = user.catches[f.id] || 0;
-        const isCaught = count > 0;
-        return `
-          <div class="card dex-card ${isCaught ? '' : 'locked'}">
-            <div class="fish-icon-frame">${f.icon}</div>
-            <div>
-              <span class="badge tier-${f.tier}">Tier ${f.tier}</span> <small style="color:var(--text-muted)">${f.code}</small>
-              <h4 style="margin:0.4rem 0 0.2rem 0">${f.name}</h4>
-              <small style="color:var(--gold)">Wert: ~${f.value} Gold</small>
-            </div>
-            <div style="margin-top:0.8rem; font-size:0.85rem; color:var(--text-muted);">
-              Fänge: <strong style="color:var(--accent)">${count}x</strong>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // --- 7. SIMULATOR & INTERACTION ---
-    function simulateFishing() {
-      const locTierIdx = TIERS.indexOf(LOCS[user.currentLoc].tier);
-      const maxFishIdx = Math.min(99, (locTierIdx + 1) * 10 + Math.floor(Math.random() * 8));
-      const fish = FISHES[Math.floor(Math.random() * maxFishIdx)];
-
-      const count = (user.catches[fish.id] || 0) + 1;
-      user.catches[fish.id] = count;
-
-      const earnedGold = fish.value + Math.floor(Math.random() * 15);
-      const earnedXp = fish.xp;
-      const gotMat = Math.random() < 0.4;
-
-      user.gold += earnedGold;
-      if(gotMat) user.mats += 1;
-
-      const log = document.getElementById('sim-log');
-      const time = new Date().toLocaleTimeString();
-      log.innerHTML = `<div>[${time}] 🎣 <strong>${user.name}</strong> hat einen <strong>${fish.name}</strong> (${fish.icon} Tier ${fish.tier}) gefangen! (+${earnedGold}g, +${earnedXp} XP ${gotMat ? '| +1x Müll-Material 🔩' : ''})</div>` + log.innerHTML;
-
-      addXP(earnedXp);
-      saveState();
-      updateUI();
-    }
-
-    // --- 8. SHOP & PROGRESSION ACTIONS ---
-    function buyRod(id) {
-      const rod = RODS[id];
-      if(!user.ownedRods.includes(id)) {
-        if(user.gold >= rod.cost) {
-          user.gold -= rod.cost;
-          user.ownedRods.push(id);
-          user.currentRod = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentRod = id; }
-      saveState(); updateUI(); filterItems();
-    }
-
-    function buyBait(id) {
-      const bait = BAITS[id];
-      if(!user.ownedBaits.includes(id)) {
-        if(user.gold >= bait.cost) {
-          user.gold -= bait.cost;
-          user.ownedBaits.push(id);
-          user.currentBait = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentBait = id; }
-      saveState(); updateUI(); filterItems();
-    }
-
-    function unlockLoc(id) {
-      const loc = LOCS[id];
-      if(!user.unlockedLocs.includes(id)) {
-        if(user.gold >= loc.cost) {
-          user.gold -= loc.cost;
-          user.unlockedLocs.push(id);
-          user.currentLoc = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentLoc = id; }
-      saveState(); updateUI(); filterItems();
-    }
-
-    function addXP(amount) {
-      user.xp += amount;
-      if(user.xp >= user.maxXp) {
-        user.xp -= user.maxXp;
-        user.lvl++;
-        user.maxXp = Math.floor(user.maxXp * 1.5);
-        alert(`🎉 LEVEL UP! Du bist jetzt Level ${user.lvl} Angler!`);
-      }
-      saveState();
-      updateUI();
-    }
-
-    function renderQuestsAndCrafting() {
-      const qGrid = document.getElementById('quests-grid');
-      qGrid.innerHTML = user.quests.map(q => `
-        <div class="card ${q.done ? 'completed' : ''}">
-          <div>
-            <h4>${q.title}</h4>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin:0.3rem 0;">${q.desc}</p>
-            <p style="font-size:0.8rem; color:var(--gold)">Belohnung: +${q.rewardGold}g | +${q.rewardXp} XP | +${q.rewardMats} Mats</p>
-          </div>
-          <button class="btn-action" ${q.done ? 'disabled' : ''} onclick="completeQuest(${q.id})">
-            ${q.done ? 'Abgeschlossen' : 'Quest Abschließen'}
-          </button>
-        </div>
-      `).join('');
-
-      const cGrid = document.getElementById('crafting-grid');
-      cGrid.innerHTML = CRAFTING_RECIPES.map(c => `
-        <div class="card">
-          <div>
-            <h4>${c.name}</h4>
-            <p style="font-size:0.85rem; color:var(--success); margin:0.3rem 0;">Benötigt: ${c.reqMats} Müll-Materialien</p>
-            <p style="font-size:0.8rem; color:var(--text-muted)">Ergebnis: ${c.reward}</p>
-          </div>
-          <button class="btn-action" onclick="craftItem('${c.id}')">Herstellen</button>
-        </div>
-      `).join('');
-    }
-
-    function completeQuest(id) {
-      const q = user.quests.find(x => x.id === id);
-      if(q && !q.done) {
-        q.done = true;
-        user.gold += q.rewardGold;
-        user.mats += q.rewardMats;
-        addXP(q.rewardXp);
-      }
-    }
-
-    function craftItem(recipeId) {
-      const recipe = CRAFTING_RECIPES.find(r => r.id === recipeId);
-      if(user.mats >= recipe.reqMats) {
-        user.mats -= recipe.reqMats;
-        user.gold += recipe.gold;
-        addXP(recipe.xp);
-        alert(`⚒️ ERFOLG! ${recipe.name} hergestellt!`);
-      } else { alert("❌ Nicht genug Müll-Materialien!"); }
-    }
-
-    function updateUI() {
-      document.getElementById('u-name').innerText = user.name;
-      document.getElementById('u-lvl').innerText = user.lvl;
-      document.getElementById('u-gold').innerText = user.gold.toLocaleString();
-      document.getElementById('u-mats').innerText = user.mats;
-      document.getElementById('u-prestige').innerText = user.prestige;
-      
-      document.getElementById('xp-text').innerText = `${user.xp}/${user.maxXp}`;
-      document.getElementById('xp-fill').style.width = (user.xp / user.maxXp * 100) + '%';
-
-      document.getElementById('sim-rod-display').innerText = `${RODS[user.currentRod].code} - ${RODS[user.currentRod].name}`;
-      document.getElementById('sim-bait-display').innerText = `${BAITS[user.currentBait].code} - ${BAITS[user.currentBait].name}`;
-      document.getElementById('sim-loc-display').innerText = `${LOCS[user.currentLoc].code} - ${LOCS[user.currentLoc].name}`;
-
-      renderQuestsAndCrafting();
-    }
-
-    function saveState() {
-      localStorage.setItem('tt_rpg_full_state', JSON.stringify(user));
-    }
-
-    // --- 9. INITIALIZATION & ANIMATED LOADER ---
-    let loadProgress = 0;
-    const loadBar = document.getElementById('load-bar');
-    const loadText = document.getElementById('load-text');
-
-    const loadInterval = setInterval(() => {
-      loadProgress += 20;
-      
-      if (loadBar) loadBar.style.width = loadProgress + '%';
-      if (loadText) {
-        if (loadProgress === 40) loadText.innerText = 'Berechne 3D Wellenphysik...';
-        if (loadProgress === 80) loadText.innerText = 'Generiere Avatar Studio & Fish-Dex...';
-      }
-
-      if (loadProgress >= 100) {
-        clearInterval(loadInterval);
-        const ls = document.getElementById('loading-screen');
-        if (ls) {
-          ls.style.opacity = '0';
-          setTimeout(() => ls.style.display = 'none', 600);
-        }
-      }
-    }, 200);
-
-    initAvatarStudio();
-    updateUI();
-  </script>
+if (user && api) { localStorage.setItem('angel_user', user); localStorage.setItem('angel_api', api); }
+init();
+setInterval(() => {
+  if (document.getElementById('view-aquarium').classList.contains('active')) loadAquarium();
+  else loadEquipment();
+}, 15000);
+</script>
 </body>
 </html>
