@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎣 Angel Game - Aquarium & Ausrüstung</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --bg: #0B0E14; --panel: #141923; --panel-hover: #1E2533; --border: #2B1D45;
@@ -17,6 +18,9 @@
   .setup-box input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
   .setup-box button { background: var(--purple); color: #fff; border: none; border-radius: 8px; padding: 12px 20px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
   .setup-box button:hover { background: var(--purple-hover); }
+  .setup-box .or { color: var(--muted); font-size: 12px; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .twitch-btn { background: #9146FF !important; }
+  .twitch-btn:hover { background: #772CE8 !important; }
   .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .tab-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
   .tab-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); }
@@ -48,6 +52,8 @@
   .stat .num { font-size: 22px; font-weight: bold; color: var(--gold); }
   .stat .label { font-size: 11px; color: var(--muted); }
   #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--border); padding: 12px 20px; border-radius: 10px; display: none; z-index: 99; }
+  #offlineBanner { display:none; max-width:1000px; margin: 0 auto 16px; background:#3a2a0a; border:1px solid var(--gold); color:var(--gold); border-radius:10px; padding:12px 16px; font-size:13px; text-align:center; }
+  .logout-link { color: var(--muted); font-size: 11px; text-decoration: underline; cursor: pointer; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -57,11 +63,16 @@
 
 <div id="setupBox" class="setup-box" style="display:none;">
   <h3>Verbindung einrichten</h3>
-  <p class="hint">Rufe diese Seite über den <b>!aquarium</b>-Befehl im Twitch-Chat des Streamers auf - dann werden Nutzername & Server-Adresse automatisch eingetragen. Alternativ manuell:</p>
+  <p class="hint">Verbinde dich mit deinem echten Twitch-Konto - dein Nutzername wird dann automatisch & verifiziert übernommen.</p>
+  <button class="twitch-btn" onclick="loginWithTwitch()">🟣 Mit Twitch verbinden</button>
+  <div class="or">oder</div>
+  <p class="hint">Rufe diese Seite über den <b>!aquarium</b>-Befehl im Twitch-Chat des Streamers auf, oder trage die Daten manuell ein:</p>
   <input id="inUser" placeholder="Dein Twitch-Nutzername">
   <input id="inApi" placeholder="Server-Adresse (z.B. https://xyz.ngrok-free.app)">
-  <button onclick="manualStart()">Verbinden</button>
+  <button onclick="manualStart()">Verbinden (unverifiziert)</button>
 </div>
+
+<div id="offlineBanner">☁️ Das Bot-Tool des Streamers ist gerade offline - du siehst eine Cloud-Vorschau deines letzten Standes. Aktionen (Fisch einsetzen, Rute kaufen, reisen ...) sind erst wieder möglich, sobald der Streamer sein Tool startet.</div>
 
 <div id="app" style="display:none;">
   <div class="tabs">
@@ -73,7 +84,7 @@
     <div class="panel">
       <div id="pendingBar">
         <div>Passiv-Einnahmen: <b id="pendingCoins">0</b> <span id="coinsName1">Coins</span></div>
-        <button class="btn" onclick="collectCoins()">💰 Einsammeln</button>
+        <button class="btn" id="collectBtn" onclick="collectCoins()">💰 Einsammeln</button>
       </div>
     </div>
     <div class="panel">
@@ -108,9 +119,26 @@
 <div id="toast"></div>
 
 <script>
+// ==========================================
+// ☁️ SUPABASE KONFIGURATION
+// ==========================================
+// Trage hier deine Projekt-URL und deinen ANON (öffentlichen!) Key ein -
+// zu finden in Supabase unter Project Settings -> API.
+// NIEMALS den "service_role" Key hier eintragen - der gehört nur in app.py!
+const SUPABASE_URL = "";       // z.B. "https://xxxxxxxxxxx.supabase.co"
+const SUPABASE_ANON_KEY = "";  // der öffentliche "anon" Key
+
+let supabaseClient = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
 const params = new URLSearchParams(window.location.search);
 let user = (params.get('user') || localStorage.getItem('angel_user') || '').toLowerCase();
 let api = (params.get('api') || localStorage.getItem('angel_api') || '').replace(/\/$/, '');
+let streamerId = (params.get('streamer') || localStorage.getItem('angel_streamer') || '').toLowerCase();
+let verifiedViaTwitch = false;
+let localApiOnline = null; // null = noch nicht geprüft
 let selectedSlot = null;
 let coinsName = 'Coins';
 
@@ -128,6 +156,49 @@ function switchTab(name) {
   if (name === 'equipment') loadEquipment();
 }
 
+// ---------- Twitch-Login (echtes OAuth über Supabase Auth) ----------
+async function loginWithTwitch() {
+  if (!supabaseClient) {
+    showToast('Twitch-Login ist noch nicht eingerichtet (Supabase fehlt).');
+    return;
+  }
+  await supabaseClient.auth.signInWithOAuth({
+    provider: 'twitch',
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
+  });
+}
+
+function logout() {
+  if (supabaseClient) supabaseClient.auth.signOut();
+  localStorage.removeItem('angel_user');
+  localStorage.removeItem('angel_api');
+  localStorage.removeItem('angel_streamer');
+  location.reload();
+}
+
+function extractTwitchLogin(supaUser) {
+  // Supabase legt den Twitch-Nutzernamen je nach Version/Einstellung unter
+  // unterschiedlichen Feldern ab - wir probieren die gängigen der Reihe nach.
+  // Falls dein Login später "undefined" zeigt: einmal console.log(supaUser)
+  // aufrufen und das richtige Feld unten ergänzen.
+  const m = supaUser?.user_metadata || {};
+  return (m.preferred_username || m.user_name || m.nickname || m.name || '').toLowerCase();
+}
+
+async function checkTwitchSession() {
+  if (!supabaseClient) return false;
+  const { data } = await supabaseClient.auth.getSession();
+  const session = data?.session;
+  if (!session) return false;
+  const login = extractTwitchLogin(session.user);
+  if (!login) return false;
+  user = login;
+  verifiedViaTwitch = true;
+  localStorage.setItem('angel_user', user);
+  return true;
+}
+
+// ---------- Verbindung / Start ----------
 function manualStart() {
   user = document.getElementById('inUser').value.trim().toLowerCase();
   api = document.getElementById('inApi').value.trim().replace(/\/$/, '');
@@ -137,17 +208,45 @@ function manualStart() {
   init();
 }
 
-function init() {
-  if (!user || !api) {
+async function init() {
+  await checkTwitchSession();
+
+  if (!user) {
     document.getElementById('setupBox').style.display = 'block';
     document.getElementById('app').style.display = 'none';
-    document.getElementById('userLabel').innerText = 'Keine Verbindung - bitte über !aquarium im Chat aufrufen oder unten manuell eintragen.';
+    document.getElementById('userLabel').innerText = 'Keine Verbindung - mit Twitch verbinden, über !aquarium im Chat aufrufen, oder unten manuell eintragen.';
     return;
   }
+  if (api) { localStorage.setItem('angel_api', api); }
+  if (streamerId) { localStorage.setItem('angel_streamer', streamerId); }
+
   document.getElementById('setupBox').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('userLabel').innerText = '@' + user;
+  document.getElementById('userLabel').innerHTML =
+    '@' + user + (verifiedViaTwitch ? ' <span style="color:#9146FF;">✔ Twitch-verifiziert</span>' : ' <span style="color:var(--muted);">(unverifiziert)</span>') +
+    ' <span class="logout-link" onclick="logout()">abmelden / wechseln</span>';
+
+  await refreshLocalApiStatus();
   loadAquarium();
+}
+
+// Prüft kurz (mit Timeout), ob das lokale Bot-Tool des Streamers gerade
+// über den Tunnel erreichbar ist. Wenn nicht: Cloud-Vorschau statt Live-Modus.
+async function refreshLocalApiStatus() {
+  if (!api) { localApiOnline = false; }
+  else {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch(api + '/aquarium_data?user=' + encodeURIComponent(user) + '&_=' + Date.now(), { signal: ctrl.signal });
+      clearTimeout(t);
+      localApiOnline = res.ok;
+    } catch (e) {
+      localApiOnline = false;
+    }
+  }
+  document.getElementById('offlineBanner').style.display = localApiOnline ? 'none' : 'block';
+  document.getElementById('collectBtn').disabled = !localApiOnline;
 }
 
 async function apiGet(path) {
@@ -155,15 +254,40 @@ async function apiGet(path) {
   return res.json();
 }
 
+// Liest die zuletzt vom Bot-Tool synchronisierte Cloud-Kopie (Supabase),
+// falls der Streamer gerade offline ist. Nur Lesevorschau, keine Aktionen.
+async function cloudGet() {
+  if (!supabaseClient || !streamerId || !user) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('aquarium_cache')
+      .select('aquarium, equipment, updated_at')
+      .eq('streamer_id', streamerId)
+      .eq('twitch_username', user)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ---------- Aquarium ----------
 async function loadAquarium() {
-  const data = await apiGet('/aquarium_data?user=' + encodeURIComponent(user));
-  coinsName = data.coins_name || 'Coins';
+  let data;
+  if (localApiOnline) {
+    data = await apiGet('/aquarium_data?user=' + encodeURIComponent(user));
+  } else {
+    const cached = await cloudGet();
+    data = cached ? cached.aquarium : { fishes: [], slots: [], pending_coins: 0, coins_name: coinsName, max_slots: 6 };
+    if (!cached) showToast('Noch keine Cloud-Daten vorhanden - bitte kurz warten, bis der Streamer online ist.');
+  }
+  coinsName = data.coins_name || coinsName;
   document.getElementById('coinsName1').innerText = coinsName;
   document.getElementById('coinsName2').innerText = coinsName;
   renderTank(data);
   renderInventory(data);
-  document.getElementById('pendingCoins').innerText = data.pending_coins;
+  document.getElementById('pendingCoins').innerText = data.pending_coins || 0;
 }
 
 function renderTank(data) {
@@ -171,18 +295,22 @@ function renderTank(data) {
   tank.innerHTML = '';
   const bySlot = {};
   (data.slots || []).forEach(s => bySlot[s.slot_index] = s);
-  for (let i = 0; i < data.max_slots; i++) {
+  for (let i = 0; i < (data.max_slots || 6); i++) {
     const div = document.createElement('div');
     const s = bySlot[i];
     div.className = 'slot' + (s ? ' filled' : '');
     if (s) {
-      div.innerHTML = '<span class="remove" onclick="event.stopPropagation();removeFish(' + i + ')">✖</span>' +
+      div.innerHTML = (localApiOnline ? '<span class="remove" onclick="event.stopPropagation();removeFish(' + i + ')">✖</span>' : '') +
         '<div style="font-size:32px;">' + (s.is_shiny ? '✨🐟' : '🐟') + '</div>' +
         '<div class="rarity-' + s.rarity + '">' + s.species + '</div>' +
         '<div class="rate">+' + s.coins_per_hour + '/h</div>';
     } else {
       div.innerText = 'Leerer Slot #' + (i + 1);
-      div.onclick = () => { selectedSlot = i; showToast('Slot ' + (i + 1) + ' gewählt - klicke jetzt auf einen Fisch unten.'); };
+      if (localApiOnline) {
+        div.onclick = () => { selectedSlot = i; showToast('Slot ' + (i + 1) + ' gewählt - klicke jetzt auf einen Fisch unten.'); };
+      } else {
+        div.style.cursor = 'not-allowed';
+      }
     }
     tank.appendChild(div);
   }
@@ -193,11 +321,11 @@ function renderInventory(data) {
   inv.innerHTML = '';
   (data.fishes || []).forEach(f => {
     const div = document.createElement('div');
-    div.className = 'fishcard' + (f.in_aquarium ? ' placed' : '');
+    div.className = 'fishcard' + (f.in_aquarium || !localApiOnline ? ' placed' : '');
     div.innerHTML = '<div class="rarity-' + f.rarity + (f.is_shiny ? ' shiny' : '') + '">' + (f.is_shiny ? '✨ ' : '') + f.species + '</div>' +
       '<div class="hint">' + f.length_cm + 'cm / ' + f.weight_kg + 'kg</div>' +
       '<div class="hint">Wert: ' + f.base_value + '</div>';
-    if (!f.in_aquarium) {
+    if (!f.in_aquarium && localApiOnline) {
       div.onclick = () => {
         if (selectedSlot === null) { showToast('Zuerst einen leeren Slot oben auswählen.'); return; }
         placeFish(f.id, selectedSlot);
@@ -219,6 +347,7 @@ async function removeFish(slot) {
 }
 
 async function collectCoins() {
+  if (!localApiOnline) { showToast('Das Bot-Tool ist gerade offline - Einsammeln erst wieder möglich, wenn es läuft.'); return; }
   const r = await apiGet('/aquarium_collect?user=' + encodeURIComponent(user));
   if (r.ok) {
     showToast('+' + r.collected + ' ' + coinsName + ' eingesammelt!');
@@ -229,8 +358,14 @@ async function collectCoins() {
 
 // ---------- Ausrüstung & Gewässer ----------
 async function loadEquipment() {
-  const data = await apiGet('/equipment_data?user=' + encodeURIComponent(user));
-  if (!data.ok) { showToast(data.error || 'Fehler beim Laden'); return; }
+  let data;
+  if (localApiOnline) {
+    data = await apiGet('/equipment_data?user=' + encodeURIComponent(user));
+    if (!data.ok) { showToast(data.error || 'Fehler beim Laden'); return; }
+  } else {
+    const cached = await cloudGet();
+    data = cached ? Object.assign({ ok: true }, cached.equipment) : { ok: true, coins: 0, coins_name: coinsName, fish_level: 1, total_catches: 0, rods: [], locations: [] };
+  }
   coinsName = data.coins_name || coinsName;
   document.getElementById('coinsName2').innerText = coinsName;
   document.getElementById('statCoins').innerText = data.coins;
@@ -247,7 +382,9 @@ function renderRods(rods) {
     const div = document.createElement('div');
     div.className = 'rod-card' + (r.equipped ? ' equipped' : '');
     let actionHtml = '';
-    if (!r.owned) {
+    if (!localApiOnline) {
+      actionHtml = '<span class="badge">Nur Vorschau</span>';
+    } else if (!r.owned) {
       actionHtml = '<button class="btn purple" onclick="buyRod(' + r.id + ')">Kaufen (' + r.price + ')</button>';
     } else if (r.equipped && r.upgrade_cost !== null) {
       actionHtml = '<button class="btn gold" onclick="upgradeRod()">Upgrade (' + r.upgrade_cost + ')</button>';
@@ -270,7 +407,9 @@ function renderLocations(locs) {
     const div = document.createElement('div');
     div.className = 'loc-card' + (l.active ? ' active' : '');
     let actionHtml = '';
-    if (l.active) {
+    if (!localApiOnline) {
+      actionHtml = '<span class="badge">Nur Vorschau</span>';
+    } else if (l.active) {
       actionHtml = '<span class="badge">Aktuell hier</span>';
     } else if (!l.reachable) {
       actionHtml = '<span class="badge">Level ' + l.required_level + ' nötig</span>';
@@ -303,9 +442,9 @@ async function travel(locId) {
   if (r.ok) loadEquipment();
 }
 
-if (user && api) { localStorage.setItem('angel_user', user); localStorage.setItem('angel_api', api); }
 init();
-setInterval(() => {
+setInterval(async () => {
+  await refreshLocalApiStatus();
   if (document.getElementById('view-aquarium').classList.contains('active')) loadAquarium();
   else loadEquipment();
 }, 15000);
