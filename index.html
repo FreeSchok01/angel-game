@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twitch Angel-Shop & Marktplatz</title>
+  <title>Twitch Angel-Hub Deluxe</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -11,6 +11,7 @@
       --accent: #38bdf8;
       --text: #f8fafc;
       --gold: #facc15;
+      --green: #22c55e;
     }
 
     body {
@@ -18,38 +19,65 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text);
+      padding-bottom: 2rem;
     }
 
     header {
       background-color: var(--panel-bg);
-      padding: 1rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 1rem;
+      text-align: center;
       border-bottom: 2px solid var(--accent);
     }
 
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      background: #182234;
+      padding: 0.5rem;
+      overflow-x: auto;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: var(--bg-dark);
+      border-color: var(--accent);
+    }
+
     main {
-      padding: 1.5rem;
-      max-width: 1000px;
+      padding: 1rem;
+      max-width: 900px;
       margin: 0 auto;
     }
 
     .stats-bar {
       display: flex;
-      gap: 1.5rem;
+      justify-content: space-around;
       background: var(--panel-bg);
-      padding: 1rem;
+      padding: 0.8rem;
       border-radius: 8px;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
-    .stat { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; }
     .stat-gold { color: var(--gold); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 1rem;
     }
 
@@ -57,7 +85,7 @@
       background: var(--panel-bg);
       border: 1px solid #334155;
       border-radius: 8px;
-      padding: 1rem;
+      padding: 0.8rem;
       text-align: center;
     }
 
@@ -65,7 +93,7 @@
       background: var(--accent);
       color: var(--bg-dark);
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem;
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
@@ -73,68 +101,119 @@
       margin-top: 0.5rem;
     }
 
-    .test-panel {
-      background: #1e1b4b;
-      border: 1px dashed #6366f1;
+    /* Album Locked Style */
+    .locked { opacity: 0.4; filter: grayscale(1); }
+
+    /* Quest list */
+    .quest-card {
+      background: var(--panel-bg);
+      border-left: 4px solid var(--accent);
       padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
+      margin-bottom: 0.8rem;
+      border-radius: 0 8px 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h2 style="margin:0">🎣 Angel-Hub</h2>
-    <div id="user-profile"><span>🐥 Gast-Modus</span></div>
+    <h2 style="margin:0">🎣 Twitch Angel-Hub</h2>
   </header>
 
+  <nav>
+    <button class="nav-btn active" onclick="openTab('inventory')">🎒 Rucksack</button>
+    <button class="nav-btn" onclick="openTab('shop')">🏪 Shop</button>
+    <button class="nav-btn" onclick="openTab('album')">📖 Sammelalbum</button>
+    <button class="nav-btn" onclick="openTab('quests')">🎯 Quests</button>
+    <button class="nav-btn" onclick="openTab('market')">⚖️ Markt</button>
+  </nav>
+
   <main>
-    <div class="test-panel">
-      <h4 style="margin:0 0 0.5rem 0">🧪 Test-Steuerung (Lokaler Modus)</h4>
-      <button class="btn-action" onclick="simulateCatch()">🎣 Zufälligen Fisch fangen</button>
-    </div>
-
     <div class="stats-bar">
-      <div class="stat"><span>🐥 Level:</span> <strong id="user-level">1</strong></div>
-      <div class="stat stat-gold"><span>🪙 Gold:</span> <strong id="user-gold">0</strong></div>
+      <div>🐥 Level: <strong id="user-level">1</strong></div>
+      <div class="stat-gold">🪙 Gold: <strong id="user-gold">0</strong></div>
     </div>
 
-    <h3>Dein Inventar</h3>
-    <div class="grid" id="inventory-grid"></div>
+    <!-- TEST BUTTON (Simuliert Fang aus Chat) -->
+    <button class="btn-action" style="margin-bottom: 1.5rem; background: #6366f1; color: white;" onclick="simulateCatch()">🧪 Test: Zufälligen Fisch fangen</button>
 
-    <h3 style="margin-top: 2.5rem;">NPC Shop</h3>
-    <div class="grid">
-      <div class="card">
-        <div style="font-size:2rem">🪱</div>
-        <h4>Besserer Köder</h4>
-        <p>-2s Cooldown</p>
-        <button class="btn-action" onclick="buyItem('Besserer Köder', 50)">Kaufen (50 Gold)</button>
+    <!-- TAB: RUCKSACK -->
+    <div id="tab-inventory" class="tab-content active">
+      <h3>Dein Inventar</h3>
+      <div class="grid" id="inventory-grid"></div>
+    </div>
+
+    <!-- TAB: SHOP -->
+    <div id="tab-shop" class="tab-content">
+      <h3>NPC Shop & Upgrades</h3>
+      <div class="grid">
+        <div class="card">
+          <div style="font-size:2rem">🪱</div>
+          <h4>Besserer Köder</h4>
+          <p>-2s Cooldown</p>
+          <button class="btn-action" onclick="buyItem('Köder', 50)">50 Gold</button>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem">🎣</div>
+          <h4>Profi-Angel</h4>
+          <p>+5% Seltenheit</p>
+          <button class="btn-action" onclick="buyItem('Profi-Angel', 200)">200 Gold</button>
+        </div>
       </div>
-      <div class="card">
-        <div style="font-size:2rem">🎣</div>
-        <h4>Profi-Angel</h4>
-        <p>+5% Seltene Fische</p>
-        <button class="btn-action" onclick="buyItem('Profi-Angel', 200)">Kaufen (200 Gold)</button>
+    </div>
+
+    <!-- TAB: SAMMELALBUM -->
+    <div id="tab-album" class="tab-content">
+      <h3>Fisch-Kompendium</h3>
+      <div class="grid" id="album-grid"></div>
+    </div>
+
+    <!-- TAB: QUESTS -->
+    <div id="tab-quests" class="tab-content">
+      <h3>Tägliche Aufgaben</h3>
+      <div class="quest-card">
+        <div>
+          <h4 style="margin:0">Erster Fang des Tages</h4>
+          <small>Fange 1 beliebigen Fisch</small>
+        </div>
+        <button class="btn-action" style="width: auto;" onclick="claimQuest(25)">Belohnung (25 Gold)</button>
       </div>
+    </div>
+
+    <!-- TAB: MARKTPLATZ -->
+    <div id="tab-market" class="tab-content">
+      <h3>Community Marktplatz</h3>
+      <p style="color:#94a3b8">Hier stellen Zuschauer bald ihre Fische gegenseitig zum Verkauf ein!</p>
     </div>
   </main>
 
   <script>
-    let playerData = JSON.parse(localStorage.getItem('angel_offline_data')) || {
+    let playerData = JSON.parse(localStorage.getItem('angel_deluxe_data')) || {
       gold: 20,
       level: 1,
-      inventory: []
+      inventory: [],
+      album: []
     };
 
     const FISH_TYPES = [
-      { name: "Flussbarsch", icon: "🐟", val: 10 },
-      { name: "Lachs", icon: "🍣", val: 25 },
-      { name: "Goldkrabbe", icon: "🦀", val: 75 }
+      { id: "barsch", name: "Flussbarsch", icon: "🐟", val: 10 },
+      { id: "lachs", name: "Lachs", icon: "🍣", val: 25 },
+      { id: "krabbe", name: "Goldkrabbe", icon: "🦀", val: 75 },
+      { id: "haie", name: "Mini-Hai", icon: "🦈", val: 150 }
     ];
 
+    function openTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
     function saveData() {
-      localStorage.setItem('angel_offline_data', JSON.stringify(playerData));
+      localStorage.setItem('angel_deluxe_data', JSON.stringify(playerData));
       updateUI();
     }
 
@@ -142,11 +221,17 @@
       document.getElementById('user-gold').innerText = playerData.gold;
       document.getElementById('user-level').innerText = playerData.level;
       renderInventory();
+      renderAlbum();
     }
 
     function simulateCatch() {
       const fish = FISH_TYPES[Math.floor(Math.random() * FISH_TYPES.length)];
       playerData.inventory.push(fish);
+      
+      if (!playerData.album.includes(fish.id)) {
+        playerData.album.push(fish.id);
+      }
+      
       saveData();
     }
 
@@ -167,21 +252,40 @@
       }
     }
 
+    function claimQuest(reward) {
+      playerData.gold += reward;
+      alert(`Quest abgeschlossen! +${reward} Gold`);
+      saveData();
+    }
+
     function renderInventory() {
       const grid = document.getElementById('inventory-grid');
       if (playerData.inventory.length === 0) {
-        grid.innerHTML = '<p style="color:#94a3b8">Dein Rucksack ist leer. Klicke oben auf "Fisch fangen"!</p>';
+        grid.innerHTML = '<p style="color:#94a3b8">Dein Rucksack ist leer.</p>';
         return;
       }
-
       grid.innerHTML = playerData.inventory.map((item, idx) => `
         <div class="card">
           <div style="font-size:2rem">${item.icon}</div>
-          <h4 style="margin:0.5rem 0">${item.name}</h4>
-          <p style="margin:0; font-size:0.9rem">Wert: ${item.val} Gold</p>
+          <h4 style="margin:0.3rem 0">${item.name}</h4>
+          <p style="margin:0; font-size:0.8rem">${item.val} Gold</p>
           <button class="btn-action" onclick="sellItem(${idx})">Verkaufen</button>
         </div>
       `).join('');
+    }
+
+    function renderAlbum() {
+      const grid = document.getElementById('album-grid');
+      grid.innerHTML = FISH_TYPES.map(fish => {
+        const unlocked = playerData.album.includes(fish.id);
+        return `
+          <div class="card ${unlocked ? '' : 'locked'}">
+            <div style="font-size:2rem">${unlocked ? fish.icon : '❓'}</div>
+            <h4 style="margin:0.3rem 0">${unlocked ? fish.name : 'Unbekannt'}</h4>
+            <small>${unlocked ? 'Entdeckt!' : 'Noch nicht gefangen'}</small>
+          </div>
+        `;
+      }).join('');
     }
 
     updateUI();
