@@ -3,254 +3,322 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tide & Tackle: Zuschauer Dashboard</title>
+  <title>Tide & Tackle: XXL Streamer Edition</title>
   <style>
     :root {
-      --bg-dark: #0f172a; --panel-bg: #1e293b; --accent: #38bdf8;
+      --bg-dark: #090d16; --panel-bg: #151d30; --accent: #38bdf8;
       --text: #f8fafc; --gold: #facc15; --purple: #c084fc;
       --danger: #ef4444; --success: #22c55e;
     }
     body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-dark); color: var(--text); padding-bottom: 2rem; }
-
     header { background: #020617; padding: 1rem; text-align: center; border-bottom: 2px solid var(--accent); }
     
     .user-bar {
-      background: var(--panel-bg); padding: 0.8rem; display: flex;
-      justify-content: space-between; align-items: center; max-width: 900px;
-      margin: 1rem auto; border-radius: 8px; border: 1px solid #334155;
+      background: var(--panel-bg); padding: 0.8rem 1.2rem; display: flex;
+      justify-content: space-between; align-items: center; max-width: 1100px;
+      margin: 1rem auto; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap; gap: 0.5rem;
     }
 
-    nav { display: flex; gap: 0.4rem; background: #090d16; padding: 0.6rem; overflow-x: auto; justify-content: center; }
-    .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    nav { display: flex; gap: 0.4rem; background: #020617; padding: 0.6rem; overflow-x: auto; justify-content: center; }
+    .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
     .nav-btn.active { background: var(--accent); color: #000; }
 
-    main { padding: 1rem; max-width: 900px; margin: 0 auto; }
+    main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
     
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
-    .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 10px; padding: 1rem; text-align: center; }
+    .controls-bar { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .search-input, .select-input {
+      background: #020617; border: 1px solid #334155; color: var(--text);
+      padding: 0.6rem; border-radius: 6px; flex: 1; min-width: 200px;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; }
     
     .btn-action {
       background: var(--accent); color: #000; border: none;
-      padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer;
-      font-weight: bold; width: 100%; margin-top: 0.5rem;
+      padding: 0.5rem; border-radius: 6px; cursor: pointer;
+      font-weight: bold; margin-top: 0.8rem; width: 100%;
     }
-    .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-sell { background: var(--gold); color: #000; }
-    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .area-card {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border: 2px solid #334155; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem;
-    }
-    .area-card.unlocked { border-color: var(--success); }
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .tier-A { background: #334155; color: #fff; }
+    .tier-E { background: #1e3a8a; color: #93c5fd; }
+    .tier-J { background: #581c87; color: var(--gold); border: 1px solid var(--gold); }
 
-    .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 0.5rem; }
-    .tag-gold { background: rgba(250, 204, 21, 0.2); color: var(--gold); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
   </style>
 </head>
 <body>
 
   <header>
-    <h2 style="margin:0">🎣 Tide & Tackle: Spieler-Dashboard</h2>
-    <small style="color:#94a3b8">Steuere dein Inventar, deinen Shop & deine Gebiete direkt im Web!</small>
+    <h2 style="margin:0">🎣 Tide & Tackle: XXL Database & Dashboard</h2>
+    <small style="color:#94a3b8">100 Ruten | 100 Köder | 100 Angel-Orte</small>
   </header>
 
-  <!-- USER LOGIN & STATS -->
+  <!-- USER BAR -->
   <div class="user-bar">
-    <div>
-      <span style="color:#94a3b8">Angler:</span> <strong id="username-display" style="color:var(--accent)">Gast_User</strong>
-      <button onclick="changeUsername()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.8rem">✏️ Ändern</button>
-    </div>
-    <div>💰 Gold: <strong id="gold-display" style="color:var(--gold)">250</strong></div>
-    <div>📍 Ort: <strong id="location-display" style="color:var(--purple)">Start-Fluss</strong></div>
+    <div>👤 Angler: <strong id="u-name" style="color:var(--accent)">TwitchUser</strong></div>
+    <div>💰 Gold: <strong id="u-gold" style="color:var(--gold)">1,000</strong>g</div>
+    <div>🎣 Rute: <strong id="u-rod" style="color:var(--success)">R001 - Teleskop Light</strong></div>
+    <div>📍 Ort: <strong id="u-loc" style="color:var(--purple)">O001 - Dorfweiher St. Ulrich</strong></div>
   </div>
 
   <nav>
-    <button class="nav-btn active" onclick="openTab('inventory', event)">🎒 Mein Inventar</button>
-    <button class="nav-btn" onclick="openTab('shop', event)">🛒 Angel-Shop</button>
-    <button class="nav-btn" onclick="openTab('areas', event)">🗺️ Gebiete / Biome</button>
+    <button class="nav-btn active" onclick="openTab('rods', event)">🎣 100 Ruten</button>
+    <button class="nav-btn" onclick="openTab('baits', event)">🪱 100 Köder</button>
+    <button class="nav-btn" onclick="openTab('locs', event)">🗺️ 100 Orte</button>
+    <button class="nav-btn" onclick="openTab('inv', event)">🎒 Inventar & Stats</button>
   </nav>
 
   <main>
-    <!-- TAB 1: INVENTAR -->
-    <div id="tab-inventory" class="tab-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-        <h3>🎒 Dein Rucksack (<span id="inv-count">0</span>/10)</h3>
-        <button class="btn-action btn-sell" style="width:auto" onclick="sellAllFish()">💰 Alle Fische verkaufen</button>
-      </div>
-      
-      <div class="grid" id="inventory-grid"></div>
+    <!-- SEARCH & FILTER BAR -->
+    <div class="controls-bar">
+      <input type="text" id="search-box" class="search-input" placeholder="Suchen nach Name, ID oder Tier..." oninput="filterItems()">
+      <select id="tier-filter" class="select-input" onchange="filterItems()">
+        <option value="ALL">Alle Tiers (A bis J)</option>
+        <option value="A">Tier A (Anfänger / Basic)</option>
+        <option value="B">Tier B (Fortgeschritten)</option>
+        <option value="C">Tier C (Profi)</option>
+        <option value="D">Tier D (Spezialist)</option>
+        <option value="E">Tier E (Heavy / Deep)</option>
+        <option value="F">Tier F (Meister)</option>
+        <option value="G">Tier G (Küste / Marine)</option>
+        <option value="H">Tier H (Offshore / Monster)</option>
+        <option value="I">Tier I (Exotisch)</option>
+        <option value="J">Tier J (Mythisch / Cyber)</option>
+      </select>
     </div>
 
-    <!-- TAB 2: ANGEL-SHOP -->
-    <div id="tab-shop" class="tab-content" style="display:none;">
-      <h3>🛒 Ausrüstung & Angelruten</h3>
-      <div class="grid">
-        <div class="card">
-          <div style="font-size:2.5rem">🎣</div>
-          <h4>Holzangel</h4>
-          <span class="tag tag-gold">Ausgerüstet</span>
-          <p style="font-size:0.8rem; color:#94a3b8">Standard-Rute für kleine Fische.</p>
-          <button class="btn-action" disabled>Im Besitz</button>
-        </div>
-
-        <div class="card">
-          <div style="font-size:2.5rem">🎋</div>
-          <h4>Bambus-Profirute</h4>
-          <p style="font-size:0.85rem; color:var(--gold)">Preis: 300 Gold</p>
-          <p style="font-size:0.8rem; color:#94a3b8">+15% Chance auf seltene Fische.</p>
-          <button class="btn-action" id="btn-buy-rod2" onclick="buyItem('rod2', 300)">Kaufen</button>
-        </div>
-
-        <div class="card">
-          <div style="font-size:2.5rem">⚡</div>
-          <h4>Titan-Tiefseerute</h4>
-          <p style="font-size:0.85rem; color:var(--gold)">Preis: 1,000 Gold</p>
-          <p style="font-size:0.8rem; color:#94a3b8">Nötig für epische & legendäre Fische.</p>
-          <button class="btn-action" id="btn-buy-rod3" onclick="buyItem('rod3', 1000)">Kaufen</button>
-        </div>
-      </div>
+    <!-- TAB 1: 100 RUTEN -->
+    <div id="tab-rods" class="tab-content active">
+      <div class="grid" id="rods-grid"></div>
     </div>
 
-    <!-- TAB 3: GEBIETE & BIOME -->
-    <div id="tab-areas" class="tab-content" style="display:none;">
-      <h3>🗺️ Fanggebiete freischalten</h3>
+    <!-- TAB 2: 100 KÖDER -->
+    <div id="tab-baits" class="tab-content">
+      <div class="grid" id="baits-grid"></div>
+    </div>
 
-      <div class="area-card unlocked">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h4>🌊 1. Start-Fluss (Freigeschaltet)</h4>
-          <span style="color:var(--success); font-weight:bold;">Aktiv</span>
-        </div>
-        <p style="font-size:0.85rem; color:#94a3b8;">Hier fängst du Flussbarsche, Forellen und Karpfen.</p>
-        <button class="btn-action" onclick="setLocation('Start-Fluss')">Hingegen</button>
-      </div>
+    <!-- TAB 3: 100 ORTE -->
+    <div id="tab-locs" class="tab-content">
+      <div class="grid" id="locs-grid"></div>
+    </div>
 
-      <div class="area-card" id="area-lake">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h4>🌲 2. Nebel-See</h4>
-          <span style="color:var(--gold); font-weight:bold;">500 Gold</span>
-        </div>
-        <p style="font-size:0.85rem; color:#94a3b8;">Heimat von Schatten-Karpfen und seltenen Aalen.</p>
-        <button class="btn-action" id="btn-unlock-lake" onclick="unlockArea('lake', 500, 'Nebel-See')">Gebiet Freischalten (500g)</button>
-      </div>
-
-      <div class="area-card" id="area-ocean">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h4>🌋 3. Vulkan-Ozean</h4>
-          <span style="color:var(--gold); font-weight:bold;">2,000 Gold</span>
-        </div>
-        <p style="font-size:0.85rem; color:#94a3b8;">Extrem gefährlich! Chance auf Drachenfische & Schätze.</p>
-        <button class="btn-action" id="btn-unlock-ocean" onclick="unlockArea('ocean', 2000, 'Vulkan-Ozean')">Gebiet Freischalten (2000g)</button>
+    <!-- TAB 4: INVENTAR -->
+    <div id="tab-inv" class="tab-content">
+      <div class="card" style="max-width:600px; margin:0 auto;">
+        <h3>🎒 Dein Ausrüstungs-Status</h3>
+        <p><strong>Aktuelle Rute:</strong> <span id="inv-rod-text">Keine</span></p>
+        <p><strong>Aktueller Köder:</strong> <span id="inv-bait-text">Keiner</span></p>
+        <p><strong>Aktueller Ort:</strong> <span id="inv-loc-text">Keiner</span></p>
+        <hr style="border-color:#334155; margin:1rem 0;">
+        <p style="font-size:0.85rem; color:#94a3b8">Alle Boni und Ausrüstungen werden automatisch mit den Twitch-Chatbefehlen (<code>!angeln</code>) verrechnet.</p>
       </div>
     </div>
   </main>
 
   <script>
-    // Spielstand-Daten
-    let player = JSON.parse(localStorage.getItem('tt_viewer_data')) || {
-      name: "TwitchViewer_" + Math.floor(Math.random() * 1000),
-      gold: 250,
-      location: "Start-Fluss",
-      inventory: [
-        { id: 1, name: "Flussbarsch", icon: "🐟", val: 20 },
-        { id: 2, name: "Regenbogenforelle", icon: "🐠", val: 45 }
-      ],
-      unlockedAreas: ['Start-Fluss'],
-      items: ['rod1']
+    // System-State
+    let user = {
+      gold: 1000,
+      currentRod: 0,
+      currentBait: 0,
+      currentLoc: 0,
+      ownedRods: [0],
+      ownedBaits: [0],
+      unlockedLocs: [0]
     };
 
+    // Daten-Generatoren für die 100er-Listen
+    const TIERS = ['A','B','C','D','E','F','G','H','I','J'];
+    const ROD_NAMES = ["Teleskop Light", "Carbon Stippe", "Micro Jigger", "Zander Taktik", "Karpfen Klassiker", "Feeder Heavy", "Tremarella", "Boje Monster", "Fliegenrute", "Brandungs Titan", "Norwegen Seil", "Tenkara Traditional", "Nano Graphen", "Cyber Rod Pro"];
+    const BAIT_NAMES = ["Tauwurm", "Maden-Mix", "Monster Crab Boilie", "Action Shad", "Deep Runner Wobbler", "Spinner Silber", "Goldkopf Nymphe", "Wattwurm", "Slow Jig Metal", "Knoblauch Paste", "Cyber Lure"];
+    const LOC_NAMES = ["Dorfweiher St. Ulrich", "Rhein-Buhne Köln", "Bodensee Tiefen", "Schwedischer Schärengarten", "Forellenhof Quellgrund", "Ebro-Stausee", "Ostsee Strand", "Saltstraumen Strahl", "Amazonas Strom", "Bermuda Dreieck"];
+
+    const RODS = Array.from({length: 100}, (_, i) => {
+      const tierIdx = Math.floor(i / 10);
+      return {
+        id: i,
+        code: `R${String(i+1).padStart(3, '0')}`,
+        name: `${ROD_NAMES[i % ROD_NAMES.length]} ${i+1}`,
+        tier: TIERS[tierIdx],
+        cost: (tierIdx + 1) * 150 + (i * 20),
+        power: (i + 1) * 5
+      };
+    });
+
+    const BAITS = Array.from({length: 100}, (_, i) => {
+      const tierIdx = Math.floor(i / 10);
+      return {
+        id: i,
+        code: `K${String(i+1).padStart(3, '0')}`,
+        name: `${BAIT_NAMES[i % BAIT_NAMES.length]} ${i+1}`,
+        tier: TIERS[tierIdx],
+        cost: (tierIdx + 1) * 50 + (i * 5),
+        attract: (i + 1) * 2
+      };
+    });
+
+    const LOCS = Array.from({length: 100}, (_, i) => {
+      const tierIdx = Math.floor(i / 10);
+      return {
+        id: i,
+        code: `O${String(i+1).padStart(3, '0')}`,
+        name: `${LOC_NAMES[i % LOC_NAMES.length]} ${i+1}`,
+        tier: TIERS[tierIdx],
+        cost: (tierIdx + 1) * 300 + (i * 50),
+        rarityBonus: (i + 1) * 3
+      };
+    });
+
+    // Navigation & Tabs
+    let currentTab = 'rods';
     function openTab(tab, e) {
-      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      currentTab = tab;
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tab).style.display = 'block';
+      document.getElementById('tab-' + tab).classList.add('active');
       if(e) e.currentTarget.classList.add('active');
+      filterItems();
     }
 
-    function changeUsername() {
-      const newName = prompt("Gib deinen Twitch-Benutzernamen ein:", player.name);
-      if(newName) {
-        player.name = newName;
-        updateUI();
-      }
+    // Render-Logik mit Filter
+    function render() {
+      document.getElementById('u-gold').innerText = user.gold.toLocaleString();
+      document.getElementById('u-rod').innerText = `${RODS[user.currentRod].code} - ${RODS[user.currentRod].name}`;
+      document.getElementById('u-loc').innerText = `${LOCS[user.currentLoc].code} - ${LOCS[user.currentLoc].name}`;
+      
+      document.getElementById('inv-rod-text').innerText = RODS[user.currentRod].name;
+      document.getElementById('inv-bait-text').innerText = BAITS[user.currentBait].name;
+      document.getElementById('inv-loc-text').innerText = LOCS[user.currentLoc].name;
     }
 
-    function updateUI() {
-      document.getElementById('username-display').innerText = player.name;
-      document.getElementById('gold-display').innerText = player.gold;
-      document.getElementById('location-display').innerText = player.location;
-      document.getElementById('inv-count').innerText = player.inventory.length;
+    function filterItems() {
+      const query = document.getElementById('search-box').value.toLowerCase();
+      const selectedTier = document.getElementById('tier-filter').value;
 
-      renderInventory();
-      saveData();
+      if(currentTab === 'rods') renderRods(query, selectedTier);
+      if(currentTab === 'baits') renderBaits(query, selectedTier);
+      if(currentTab === 'locs') renderLocs(query, selectedTier);
     }
 
-    function renderInventory() {
-      const grid = document.getElementById('inventory-grid');
-      if(player.inventory.length === 0) {
-        grid.innerHTML = '<p style="color:#94a3b8; grid-column: 1/-1;">Dein Rucksack ist leer. Schreibe <code>!angeln</code> im Chat!</p>';
-        return;
-      }
-
-      grid.innerHTML = player.inventory.map((item, idx) => `
-        <div class="card">
-          <div style="font-size:2.5rem">${item.icon}</div>
-          <h4>${item.name}</h4>
-          <p style="color:var(--gold); font-weight:bold;">${item.val} Gold</p>
-          <button class="btn-action btn-sell" onclick="sellItem(${idx})">Verkaufen</button>
-        </div>
-      `).join('');
+    function renderRods(q, tier) {
+      const grid = document.getElementById('rods-grid');
+      const filtered = RODS.filter(r => (tier === 'ALL' || r.tier === tier) && (r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
+      
+      grid.innerHTML = filtered.map(r => {
+        const owned = user.ownedRods.includes(r.id);
+        const active = user.currentRod === r.id;
+        return `
+          <div class="card">
+            <div>
+              <span class="badge tier-${r.tier}">Tier ${r.tier}</span> <small style="color:#94a3b8">${r.code}</small>
+              <h4 style="margin:0.5rem 0 0.2rem 0">${r.name}</h4>
+              <small style="color:var(--accent)">Stärke: +${r.power} Pkt.</small>
+            </div>
+            <div>
+              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${r.cost} Gold</p>
+              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyRod(${r.id})">
+                ${active ? 'Ausgerüstet' : (owned ? 'Ausrüsten' : 'Kaufen')}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function sellItem(idx) {
-      player.gold += player.inventory[idx].val;
-      player.inventory.splice(idx, 1);
-      updateUI();
+    function renderBaits(q, tier) {
+      const grid = document.getElementById('baits-grid');
+      const filtered = BAITS.filter(b => (tier === 'ALL' || b.tier === tier) && (b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q)));
+      
+      grid.innerHTML = filtered.map(b => {
+        const owned = user.ownedBaits.includes(b.id);
+        const active = user.currentBait === b.id;
+        return `
+          <div class="card">
+            <div>
+              <span class="badge tier-${b.tier}">Tier ${b.tier}</span> <small style="color:#94a3b8">${b.code}</small>
+              <h4 style="margin:0.5rem 0 0.2rem 0">${b.name}</h4>
+              <small style="color:var(--success)">Lockwirkung: +${b.attract}%</small>
+            </div>
+            <div>
+              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${b.cost} Gold</p>
+              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyBait(${b.id})">
+                ${active ? 'Aktiviert' : (owned ? 'Aktivieren' : 'Kaufen')}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function sellAllFish() {
-      let total = 0;
-      player.inventory.forEach(item => total += item.val);
-      player.gold += total;
-      player.inventory = [];
-      alert(`🎉 Alle Fische verkauft für ${total} Gold!`);
-      updateUI();
+    function renderLocs(q, tier) {
+      const grid = document.getElementById('locs-grid');
+      const filtered = LOCS.filter(l => (tier === 'ALL' || l.tier === tier) && (l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q)));
+      
+      grid.innerHTML = filtered.map(l => {
+        const unlocked = user.unlockedLocs.includes(l.id);
+        const active = user.currentLoc === l.id;
+        return `
+          <div class="card">
+            <div>
+              <span class="badge tier-${l.tier}">Tier ${l.tier}</span> <small style="color:#94a3b8">${l.code}</small>
+              <h4 style="margin:0.5rem 0 0.2rem 0">${l.name}</h4>
+              <small style="color:var(--purple)">Seltenheit: +${l.rarityBonus}%</small>
+            </div>
+            <div>
+              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${l.cost} Gold</p>
+              <button class="btn-action" ${active ? 'disabled' : ''} onclick="unlockLoc(${l.id})">
+                ${active ? 'Hier Angeln' : (unlocked ? 'Reisen' : 'Freischalten')}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function buyItem(itemId, cost) {
-      if(player.gold >= cost) {
-        player.gold -= cost;
-        player.items.push(itemId);
-        alert("🎉 Ausrüstung erfolgreich gekauft!");
-        document.getElementById('btn-buy-' + itemId).innerText = "Im Besitz";
-        document.getElementById('btn-buy-' + itemId).disabled = true;
-        updateUI();
-      } else {
-        alert("❌ Nicht genug Gold!");
-      }
+    // Kauf- & Ausrüst-Aktionen
+    function buyRod(id) {
+      const rod = RODS[id];
+      if(!user.ownedRods.includes(id)) {
+        if(user.gold >= rod.cost) {
+          user.gold -= rod.cost;
+          user.ownedRods.push(id);
+          user.currentRod = id;
+        } else { return alert("Nicht genug Gold!"); }
+      } else { user.currentRod = id; }
+      render(); filterItems();
     }
 
-    function unlockArea(areaId, cost, areaName) {
-      if(player.gold >= cost) {
-        player.gold -= cost;
-        player.unlockedAreas.push(areaName);
-        document.getElementById('area-' + areaId).classList.add('unlocked');
-        alert(`🗺️ ${areaName} wurde freigeschaltet!`);
-        setLocation(areaName);
-      } else {
-        alert("❌ Nicht genug Gold!");
-      }
+    function buyBait(id) {
+      const bait = BAITS[id];
+      if(!user.ownedBaits.includes(id)) {
+        if(user.gold >= bait.cost) {
+          user.gold -= bait.cost;
+          user.ownedBaits.push(id);
+          user.currentBait = id;
+        } else { return alert("Nicht genug Gold!"); }
+      } else { user.currentBait = id; }
+      render(); filterItems();
     }
 
-    function setLocation(areaName) {
-      player.location = areaName;
-      updateUI();
+    function unlockLoc(id) {
+      const loc = LOCS[id];
+      if(!user.unlockedLocs.includes(id)) {
+        if(user.gold >= loc.cost) {
+          user.gold -= loc.cost;
+          user.unlockedLocs.push(id);
+          user.currentLoc = id;
+        } else { return alert("Nicht genug Gold!"); }
+      } else { user.currentLoc = id; }
+      render(); filterItems();
     }
 
-    function saveData() {
-      localStorage.setItem('tt_viewer_data', JSON.stringify(player));
-    }
-
-    updateUI();
+    // Start-Initialization
+    render();
+    filterItems();
   </script>
 </body>
 </html>
