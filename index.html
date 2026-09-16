@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitch Angel-Shop & Marktplatz</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --gold: #facc15;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text);
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    main {
+      padding: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      background: var(--panel-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .stat { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; }
+    .stat-gold { color: var(--gold); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .btn-action {
+      background: var(--accent);
+      color: var(--bg-dark);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .test-panel {
+      background: #1e1b4b;
+      border: 1px dashed #6366f1;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2 style="margin:0">🎣 Angel-Hub</h2>
+    <div id="user-profile"><span>🐥 Gast-Modus</span></div>
+  </header>
+
+  <main>
+    <div class="test-panel">
+      <h4 style="margin:0 0 0.5rem 0">🧪 Test-Steuerung (Lokaler Modus)</h4>
+      <button class="btn-action" onclick="simulateCatch()">🎣 Zufälligen Fisch fangen</button>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><span>🐥 Level:</span> <strong id="user-level">1</strong></div>
+      <div class="stat stat-gold"><span>🪙 Gold:</span> <strong id="user-gold">0</strong></div>
+    </div>
+
+    <h3>Dein Inventar</h3>
+    <div class="grid" id="inventory-grid"></div>
+
+    <h3 style="margin-top: 2.5rem;">NPC Shop</h3>
+    <div class="grid">
+      <div class="card">
+        <div style="font-size:2rem">🪱</div>
+        <h4>Besserer Köder</h4>
+        <p>-2s Cooldown</p>
+        <button class="btn-action" onclick="buyItem('Besserer Köder', 50)">Kaufen (50 Gold)</button>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem">🎣</div>
+        <h4>Profi-Angel</h4>
+        <p>+5% Seltene Fische</p>
+        <button class="btn-action" onclick="buyItem('Profi-Angel', 200)">Kaufen (200 Gold)</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerData = JSON.parse(localStorage.getItem('angel_offline_data')) || {
+      gold: 20,
+      level: 1,
+      inventory: []
+    };
+
+    const FISH_TYPES = [
+      { name: "Flussbarsch", icon: "🐟", val: 10 },
+      { name: "Lachs", icon: "🍣", val: 25 },
+      { name: "Goldkrabbe", icon: "🦀", val: 75 }
+    ];
+
+    function saveData() {
+      localStorage.setItem('angel_offline_data', JSON.stringify(playerData));
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById('user-gold').innerText = playerData.gold;
+      document.getElementById('user-level').innerText = playerData.level;
+      renderInventory();
+    }
+
+    function simulateCatch() {
+      const fish = FISH_TYPES[Math.floor(Math.random() * FISH_TYPES.length)];
+      playerData.inventory.push(fish);
+      saveData();
+    }
+
+    function sellItem(index) {
+      const item = playerData.inventory[index];
+      playerData.gold += item.val;
+      playerData.inventory.splice(index, 1);
+      saveData();
+    }
+
+    function buyItem(name, cost) {
+      if (playerData.gold >= cost) {
+        playerData.gold -= cost;
+        alert(name + ' gekauft!');
+        saveData();
+      } else {
+        alert('Nicht genug Gold!');
+      }
+    }
+
+    function renderInventory() {
+      const grid = document.getElementById('inventory-grid');
+      if (playerData.inventory.length === 0) {
+        grid.innerHTML = '<p style="color:#94a3b8">Dein Rucksack ist leer. Klicke oben auf "Fisch fangen"!</p>';
+        return;
+      }
+
+      grid.innerHTML = playerData.inventory.map((item, idx) => `
+        <div class="card">
+          <div style="font-size:2rem">${item.icon}</div>
+          <h4 style="margin:0.5rem 0">${item.name}</h4>
+          <p style="margin:0; font-size:0.9rem">Wert: ${item.val} Gold</p>
+          <button class="btn-action" onclick="sellItem(${idx})">Verkaufen</button>
+        </div>
+      `).join('');
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
