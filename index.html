@@ -3,588 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tide & Tackle: Twitch Fishing RPG</title>
+  <title>Tide & Tackle: Ultimate Streamer Edition</title>
   <style>
     :root {
-      --bg-dark: #0a0f1d;
-      --panel-bg: #151d30;
-      --accent: #38bdf8;
-      --text: #f8fafc;
-      --gold: #facc15;
-      --purple: #c084fc;
-      --danger: #ef4444;
-      --success: #22c55e;
+      --bg-dark: #0a0f1d; --panel-bg: #151d30; --accent: #38bdf8;
+      --text: #f8fafc; --gold: #facc15; --purple: #c084fc;
+      --danger: #ef4444; --success: #22c55e;
     }
-
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text);
-      padding-bottom: 2rem;
-      user-select: none;
-      overflow-x: hidden;
-    }
-
-    #loading-screen {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: var(--bg-dark);
-      z-index: 9999;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      transition: opacity 0.5s ease, visibility 0.5s;
-    }
-
-    .spinner {
-      font-size: 4rem;
-      animation: pulse-spin 2s infinite ease-in-out;
-      margin-bottom: 1rem;
-    }
-
-    @keyframes pulse-spin {
-      0% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.2) rotate(180deg); }
-      100% { transform: scale(1) rotate(360deg); }
-    }
-
-    .load-bar-bg {
-      width: 80%; max-width: 300px; height: 12px;
-      background: #1e293b; border-radius: 6px;
-      overflow: hidden; border: 1px solid #334155; margin-top: 1rem;
-    }
-
-    .load-bar-fill {
-      height: 100%; width: 0%;
-      background: var(--accent); transition: width 0.3s ease;
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    #load-text { font-size: 0.9rem; color: #94a3b8; margin-top: 0.5rem; }
-
-    header {
-      background: linear-gradient(180deg, #1e293b 0%, var(--panel-bg) 100%);
-      padding: 1rem; text-align: center;
-      border-bottom: 2px solid var(--accent);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    nav {
-      display: flex; gap: 0.5rem; background: #0f172a;
-      padding: 0.6rem; overflow-x: auto; border-bottom: 1px solid #1e293b;
-    }
-
-    .nav-btn {
-      background: var(--panel-bg); border: 1px solid #334155;
-      color: var(--text); padding: 0.6rem 1rem; border-radius: 8px;
-      cursor: pointer; font-weight: bold; white-space: nowrap; transition: all 0.2s;
-    }
-
-    .nav-btn.active {
-      background: var(--accent); color: var(--bg-dark);
-      border-color: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-    }
-
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-dark); color: var(--text); padding-bottom: 2rem; }
+    #loading-screen { position: fixed; inset: 0; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s; }
+    .spinner { font-size: 3rem; animation: spin 1.5s infinite linear; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    header { background: var(--panel-bg); padding: 0.8rem; text-align: center; border-bottom: 2px solid var(--accent); }
+    nav { display: flex; gap: 0.4rem; background: #0f172a; padding: 0.5rem; overflow-x: auto; }
+    .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+    .nav-btn.active { background: var(--accent); color: #000; font-weight: bold; }
     main { padding: 1rem; max-width: 900px; margin: 0 auto; }
-
-    .stats-bar {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 0.5rem; background: var(--panel-bg); padding: 0.8rem;
-      border-radius: 10px; margin-bottom: 1rem; border: 1px solid #1e293b; text-align: center;
-    }
-
-    .stat-val { font-weight: bold; display: block; font-size: 1.1rem; }
-    .gold { color: var(--gold); }
-    .purple { color: var(--purple); }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem;
-    }
-
-    .card {
-      background: var(--panel-bg); border: 1px solid #334155;
-      border-radius: 10px; padding: 0.8rem; text-align: center; position: relative;
-    }
-
-    .btn-action {
-      background: var(--accent); color: var(--bg-dark); border: none;
-      padding: 0.6rem; border-radius: 6px; cursor: pointer;
-      font-weight: bold; width: 100%; margin-top: 0.5rem;
-    }
-
-    .minigame-container {
-      background: #0f172a; border: 2px solid var(--accent);
-      border-radius: 12px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;
-    }
-
-    .tension-bar-bg {
-      width: 100%; height: 24px; background: #1e293b;
-      border-radius: 12px; overflow: hidden; margin: 1rem 0;
-      position: relative; border: 1px solid #475569;
-    }
-
-    .tension-bar-fill {
-      height: 100%; width: 50%; background: var(--success);
-      transition: width 0.1s linear, background-color 0.2s;
-    }
-
-    .target-zone {
-      position: absolute; left: 40%; width: 30%; height: 100%;
-      background: rgba(56, 189, 248, 0.3);
-      border-left: 2px dashed var(--accent); border-right: 2px dashed var(--accent); top: 0;
-    }
-
-    .season-banner {
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      border: 1px solid var(--purple); border-radius: 10px;
-      padding: 1rem; margin-bottom: 1rem; text-align: center;
-    }
-
-    .prize-box {
-      background: #0f172a; border: 2px dashed var(--gold);
-      border-radius: 8px; padding: 1rem; margin: 1rem 0; text-align: center;
-    }
-
-    .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-    .leaderboard-table th, .leaderboard-table td {
-      padding: 0.6rem; text-align: left; border-bottom: 1px solid #334155;
-    }
-
-    .dex-card {
-      background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.8rem; text-align: center;
-    }
-    .dex-card.locked { opacity: 0.4; filter: grayscale(100%); }
-
-    .quest-card {
-      background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.8rem; margin-bottom: 0.5rem; border-radius: 4px;
-    }
+    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 0.5rem; background: var(--panel-bg); padding: 0.6rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-size: 0.85rem; }
+    .stat-val { font-weight: bold; display: block; font-size: 1rem; color: var(--accent); }
+    .tab-content { display: none; } .tab-content.active { display: block; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
+    .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 8px; padding: 0.8rem; text-align: center; font-size: 0.85rem; }
+    .btn-action { background: var(--accent); color: #000; border: none; padding: 0.5rem; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.4rem; }
+    .tension-bar-bg { width: 100%; height: 20px; background: #1e293b; border-radius: 10px; overflow: hidden; margin: 1rem 0; position: relative; }
+    .tension-bar-fill { height: 100%; width: 50%; background: var(--success); transition: width 0.1s linear; }
+    .target-zone { position: absolute; left: 35%; width: 30%; height: 100%; background: rgba(56, 189, 248, 0.3); border-left: 2px dashed var(--accent); border-right: 2px dashed var(--accent); }
+    .dex-card.locked { opacity: 0.3; filter: grayscale(100%); }
+    .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .leaderboard-table td, .leaderboard-table th { padding: 0.5rem; border-bottom: 1px solid #334155; text-align: left; }
   </style>
 </head>
 <body>
 
   <div id="loading-screen">
     <div class="spinner">⚓</div>
-    <h3 style="margin:0; color:var(--accent);">Tide & Tackle</h3>
-    <div class="load-bar-bg">
-      <div id="load-bar" class="load-bar-fill"></div>
-    </div>
-    <div id="load-text">Initialisiere Spielsysteme...</div>
+    <h3 style="color:var(--accent);">Tide & Tackle: Ultimate</h3>
   </div>
 
   <header>
-    <h2 style="margin:0">⚔️ Tide & Tackle RPG</h2>
-    <div id="weather-display" class="weather-badge">☀️ Wetter: Sonnig (+0% Luck)</div>
+    <h3 style="margin:0">⚔️ Tide & Tackle (30-in-1 Engine)</h3>
+    <small id="weather-display" style="color:var(--gold)">☀️ Wetter: Sonnig | 🗺️ Biom: Fluss</small>
   </header>
 
   <nav>
-    <button class="nav-btn active" onclick="openTab('action', event)">🎣 Angeln</button>
-    <button class="nav-btn" onclick="openTab('dex', event)">📖 Fish-Dex</button>
-    <button class="nav-btn" onclick="openTab('quests', event)">📜 Quests</button>
-    <button class="nav-btn" onclick="openTab('achievements', event)">🏆 Erfolge</button>
-    <button class="nav-btn" onclick="openTab('competition', event)">👑 7-Tage-Liga</button>
-    <button class="nav-btn" onclick="openTab('inventory', event)">🎒 Rucksack</button>
-    <button class="nav-btn" onclick="openTab('gear', event)">🛡️ Werkstatt</button>
-    <button class="nav-btn" onclick="openTab('settings', event)">⚙️ Optionen</button>
+    <button class="nav-btn active" onclick="openTab('game', event)">🎣 Spiel</button>
+    <button class="nav-btn" onclick="openTab('dex', event)">📖 Dex</button>
+    <button class="nav-btn" onclick="openTab('craft', event)">⚒️ Crafting</button>
+    <button class="nav-btn" onclick="openTab('aquarium', event)">🐠 Aquarium</button>
+    <button class="nav-btn" onclick="openTab('guild', event)">🛡️ Gilde & Boss</button>
+    <button class="nav-btn" onclick="openTab('comp', event)">👑 Liga</button>
+    <button class="nav-btn" onclick="openTab('shop', event)">🛒 Shop & Skins</button>
   </nav>
 
   <main>
     <div class="stats-bar">
-      <div>Level<span id="user-level" class="stat-val">1</span></div>
-      <div>Gold<span id="user-gold" class="stat-val gold">100</span></div>
-      <div>Saison-Punkte<span id="user-score" class="stat-val purple">0</span></div>
-      <div>Ruten-Zustand<span id="user-durability" class="stat-val" style="color:var(--success)">100%</span></div>
+      <div>Lvl <span id="u-lvl" class="stat-val">1</span></div>
+      <div>Gold <span id="u-gold" class="stat-val" style="color:var(--gold)">100</span></div>
+      <div>Punkte <span id="u-score" class="stat-val" style="color:var(--purple)">0</span></div>
+      <div>Rute <span id="u-dur" class="stat-val" style="color:var(--success)">100%</span></div>
+      <div>Müll <span id="u-trash" class="stat-val">0</span></div>
     </div>
 
-    <!-- TAB: ANGELN -->
-    <div id="tab-action" class="tab-content active">
-      <div class="minigame-container">
-        <h3 id="game-status">Klicke "Auswerfen", um zu starten!</h3>
-        
+    <!-- MAIN GAME TAB -->
+    <div id="tab-game" class="tab-content active">
+      <div class="card" style="padding:1.5rem;">
+        <h3 id="g-status">Bereit zum Angeln!</h3>
         <div class="tension-bar-bg">
           <div class="target-zone"></div>
           <div id="tension-fill" class="tension-bar-fill"></div>
         </div>
-
-        <button id="btn-cast" class="btn-action" style="font-size:1.2rem; padding: 0.8rem;" onclick="handleMainAction()">🎣 Auswerfen</button>
+        <button id="btn-cast" class="btn-action" style="font-size:1.1rem" onclick="handleCast()">🎣 Auswerfen</button>
       </div>
     </div>
 
-    <!-- TAB: FISH-DEX -->
+    <!-- DEX TAB -->
     <div id="tab-dex" class="tab-content">
-      <h3>📖 Fish-Dex (Sammelalbum)</h3>
-      <p style="font-size:0.9rem; color:#94a3b8;">Schalte alle Fischarten frei!</p>
+      <h3>📖 Fish-Dex & Shiny Mutationen</h3>
       <div class="grid" id="dex-grid"></div>
     </div>
 
-    <!-- TAB: QUESTS -->
-    <div id="tab-quests" class="tab-content">
-      <h3>📜 Tägliche Quests</h3>
-      <div id="quest-list"></div>
+    <!-- CRAFTING TAB -->
+    <div id="tab-craft" class="tab-content">
+      <h3>⚒️ Müll-Recycling & Köder-Crafting</h3>
+      <div class="card">
+        <h4>🪱 Spezial-Köder herstellen</h4>
+        <p>Kosten: 3x Müll</p>
+        <button class="btn-action" onclick="craftBait()">Köder herstellen</button>
+      </div>
     </div>
 
-    <!-- TAB: ERFOLGE -->
-    <div id="tab-achievements" class="tab-content">
-      <h3>🏆 Erfolge & Abzeichen</h3>
-      <div class="grid" id="achievement-grid"></div>
+    <!-- AQUARIUM TAB -->
+    <div id="tab-aquarium" class="tab-content">
+      <h3>🐠 Virtuelles Aquarium (Passives Gold)</h3>
+      <div class="card">
+        <p>Eingesetzte Fische generieren Gold pro Sekunde.</p>
+        <button class="btn-action" onclick="claimAquarium()">💰 Passives Gold abholen (<span id="aqua-gold">0</span>g)</button>
+      </div>
     </div>
 
-    <!-- TAB: 7-TAGE WETTBEWERB -->
-    <div id="tab-competition" class="tab-content">
-      <div class="season-banner">
-        <h3 style="margin:0; color:var(--purple)">👑 Wöchentliche Angel-Meisterschaft</h3>
-        <p style="margin:0.4rem 0; font-size:0.9rem;">Angle um die Wette und gewinne den Wochenpreis!</p>
-        <div style="font-weight:bold; font-size:1.1rem; color:var(--gold)" id="season-timer">⏱️ Verbleibend: 6d 23h 59m</div>
+    <!-- GILDE & BOSS TAB -->
+    <div id="tab-guild" class="tab-content">
+      <h3>🐉 Community Bossfight & Gilden</h3>
+      <div class="card" style="border-color:var(--danger)">
+        <h4>🔥 Streamer-Worldboss: Kraken</h4>
+        <p>Boss HP: <b id="boss-hp" style="color:var(--danger)">1000/1000</b></p>
+        <button class="btn-action" style="background:var(--danger); color:#fff" onclick="attackBoss()">⚔️ Boss angreifen (-10 HP)</button>
       </div>
+    </div>
 
-      <div class="prize-box">
-        <h4 style="margin:0; color:var(--gold)">🎁 Hauptgewinn dieser Woche</h4>
-        <p id="prize-description" style="font-size:0.9rem; color:#94a3b8; margin:0.3rem 0;">Wird geladen...</p>
-        <div id="prize-claim-area">
-          <button class="btn-action" style="background:var(--gold); color:#000;" onclick="revealPrizeCode()">🔒 Code freischalten (Platz 1 erforderlich)</button>
-        </div>
-      </div>
-
-      <h3>Kanal-Rangliste</h3>
+    <!-- COMPETITION TAB -->
+    <div id="tab-comp" class="tab-content">
+      <h3>👑 7-Tage Giveaway Liga</h3>
       <table class="leaderboard-table">
-        <thead>
-          <tr style="color:var(--accent)">
-            <th>#</th>
-            <th>Spieler</th>
-            <th>Saison-Punkte</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-body"></tbody>
+        <thead><tr><th>#</th><th>Spieler</th><th>Punkte</th></tr></thead>
+        <tbody id="lb-body"></tbody>
       </table>
     </div>
 
-    <!-- TAB: RUCKSACK -->
-    <div id="tab-inventory" class="tab-content">
-      <h3>Inventar</h3>
-      <div class="grid" id="inventory-grid"></div>
-    </div>
-
-    <!-- TAB: WERKSTATT & SHOP -->
-    <div id="tab-gear" class="tab-content">
-      <h3>Werkstatt & Ausrüstung</h3>
+    <!-- SHOP & SKINS TAB -->
+    <div id="tab-shop" class="tab-content">
+      <h3>🛒 Shop, Ausrüstung & Skins</h3>
       <div class="grid">
         <div class="card">
           <h4>🛠️ Rute Reparieren</h4>
-          <p id="durability-text">Zustand: 100%</p>
-          <button class="btn-action" onclick="repairRod()">Reparieren (20g)</button>
+          <button class="btn-action" onclick="repair()">Reparieren (20g)</button>
         </div>
         <div class="card">
-          <h4>🍀 Glücks-Talisman</h4>
-          <p>Permanenter +5% Seltenheits-Bonus</p>
-          <button class="btn-action" onclick="buyTalisman()">Kaufen (150g)</button>
+          <h4>🎩 Angler-Hut (Skin)</h4>
+          <button class="btn-action" onclick="buySkin()">Kaufen (100g)</button>
         </div>
-      </div>
-    </div>
-
-    <!-- TAB: OPTIONEN -->
-    <div id="tab-settings" class="tab-content">
-      <h3>Einstellungen & Streamer-Tools</h3>
-      <div id="admin-panel" class="card" style="margin-bottom:1rem; display:none;">
-        <h4>🎥 Streamer Admin-Bereich</h4>
-        <p style="font-size:0.85rem; color:#94a3b8;">Trage hier den Gewinn-Code für deine Community ein.</p>
-        <button class="btn-action" onclick="setStreamerCode()">🔑 Gewinn-Code festlegen</button>
-      </div>
-
-      <div class="card">
-        <h4>Spielstand zurücksetzen</h4>
-        <p style="font-size:0.85rem; color:#94a3b8;">Löscht alle lokalen Testdaten im Browser.</p>
-        <button class="btn-action" style="background:var(--danger); color:white;" onclick="resetData()">🗑️ Daten Reset</button>
       </div>
     </div>
   </main>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('role') === 'admin') {
-      document.getElementById('admin-panel').style.display = 'block';
-    }
+    setTimeout(() => {
+      document.getElementById('loading-screen').style.opacity = '0';
+      setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
+    }, 500);
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const bar = document.getElementById('load-bar');
-      const text = document.getElementById('load-text');
-      const screen = document.getElementById('loading-screen');
-
-      const steps = [
-        { progress: '30%', label: 'Lade Angel-Equipment...' },
-        { progress: '65%', label: 'Lade Werkstatt & Talismane...' },
-        { progress: '90%', label: 'Lade Erfolge & Saison...' },
-        { progress: '100%', label: 'Bereit!' }
-      ];
-
-      let stepIdx = 0;
-      const loadInterval = setInterval(() => {
-        if (stepIdx < steps.length) {
-          bar.style.width = steps[stepIdx].progress;
-          text.innerText = steps[stepIdx].label;
-          stepIdx++;
-        } else {
-          clearInterval(loadInterval);
-          setTimeout(() => {
-            screen.style.opacity = '0';
-            setTimeout(() => { screen.style.visibility = 'hidden'; }, 500);
-          }, 300);
-        }
-      }, 300);
-    });
-
-    const FISH_DATABASE = [
-      { id: 'f1', name: 'Flussbarsch', icon: '🐟', rarity: 'Gewöhnlich', val: 15, pts: 5 },
-      { id: 'f2', name: 'Regenbogenforelle', icon: '🐠', rarity: 'Selten', val: 35, pts: 15 },
-      { id: 'f3', name: 'Schatten-Karpfen', icon: '🐡', rarity: 'Episch', val: 80, pts: 35 },
-      { id: 'f4', name: 'Auralis-Drachenfisch', icon: '🐉', rarity: 'Legendär', val: 250, pts: 100 },
-      { id: 'c1', name: 'Schatztruhe', icon: '🪙', rarity: 'Schatz', val: 150, pts: 50 }
+    const FISH = [
+      { id:'f1', name:'Flussbarsch', icon:'🐟', val:15, pts:5 },
+      { id:'f2', name:'Karpfen', icon:'🐡', val:35, pts:15 },
+      { id:'f3', name:'Drachenfisch', icon:'🐉', val:150, pts:80 },
+      { id:'t1', name:'Plastikmüll', icon:'👟', val:0, pts:0, isTrash:true }
     ];
 
-    let state = JSON.parse(localStorage.getItem('tide_tackle_rpg')) || {
-      level: 1, xp: 0, gold: 100, seasonScore: 0,
-      durability: 100,
-      hasTalisman: false,
-      unlockedDex: ['f1'],
-      inventory: [],
-      achievements: [
-        { id: 'a1', title: 'Erster Fang', desc: 'Fange deinen ersten Fisch', done: false }
-      ],
-      quests: [
-        { id: 'q1', text: 'Fange 3 Fische', target: 3, current: 0, reward: 50, done: false }
-      ]
+    let state = JSON.parse(localStorage.getItem('tt_30_state')) || {
+      lvl:1, gold:100, score:0, dur:100, trash:0,
+      dex:['f1'], aquaGold:0, bossHP:1000, skin:false
     };
 
-    let prizeData = JSON.parse(localStorage.getItem('tide_tackle_prize')) || {
-      title: "10€ Steam Gutschein",
-      code: "STEAM-1234-TEST"
-    };
+    let isFishing = false, tension = 50, gameInterval = null;
 
-    let leaderboard = [
-      { name: "Du", score: state.seasonScore },
-      { name: "FishMaster99", score: 420 },
-      { name: "StreamFan_01", score: 280 }
-    ];
-
-    let isFishing = false;
-    let tension = 50;
-    let gameInterval = null;
-
-    function openTab(tabName, evt) {
+    function openTab(tab, e) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tabName).classList.add('active');
-      if(evt) evt.currentTarget.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      if(e) e.currentTarget.classList.add('active');
     }
 
     function updateUI() {
-      document.getElementById('user-level').innerText = state.level;
-      document.getElementById('user-gold').innerText = state.gold;
-      document.getElementById('user-score').innerText = state.seasonScore;
-      document.getElementById('user-durability').innerText = `${state.durability}%`;
-      document.getElementById('durability-text').innerText = `Zustand: ${state.durability}%`;
-
-      document.getElementById('prize-description').innerText = `Preis: ${prizeData.title}`;
-
-      leaderboard[0].score = state.seasonScore;
-      leaderboard.sort((a,b) => b.score - a.score);
-      renderLeaderboard();
-      renderInventory();
+      document.getElementById('u-lvl').innerText = state.lvl;
+      document.getElementById('u-gold').innerText = state.gold;
+      document.getElementById('u-score').innerText = state.score;
+      document.getElementById('u-dur').innerText = state.dur + '%';
+      document.getElementById('u-trash').innerText = state.trash;
+      document.getElementById('aqua-gold').innerText = state.aquaGold;
+      document.getElementById('boss-hp').innerText = `${state.bossHP}/1000`;
+      
       renderDex();
-      renderQuests();
-      renderAchievements();
-      saveGame();
+      renderLB();
+      localStorage.setItem('tt_30_state', JSON.stringify(state));
     }
 
-    function saveGame() {
-      localStorage.setItem('tide_tackle_rpg', JSON.stringify(state));
-    }
-
-    function handleMainAction() {
-      const btn = document.getElementById('btn-cast');
-      const status = document.getElementById('game-status');
-
-      if (!isFishing) {
-        if(state.durability <= 0) {
-          alert("Deine Angelrute ist kaputt! Repariere sie in der Werkstatt.");
-          return;
-        }
-
-        state.durability -= 5;
+    function handleCast() {
+      if(state.dur <= 0) return alert("Rute kaputt! Repariere sie im Shop.");
+      if(!isFishing) {
+        state.dur -= 5;
         isFishing = true;
-        btn.innerText = "🎣 Einholen (Rhythmus halten!)";
-        status.innerText = "Ein Fisch beißt an! Halte die Spannung im blauen Bereich!";
         tension = 50;
-
+        document.getElementById('btn-cast').innerText = "🎣 Einholen!";
         gameInterval = setInterval(() => {
-          tension -= 3;
-          if (tension <= 0 || tension >= 100) {
-            endMinigame(false);
-          }
-          updateTensionBar();
+          tension -= 4;
+          if(tension <= 0 || tension >= 100) endGame(false);
+          document.getElementById('tension-fill').style.width = tension + '%';
         }, 100);
       } else {
-        tension += 12;
-        if (tension >= 40 && tension <= 70) {
-          if (Math.random() < 0.18) {
-            endMinigame(true);
-          }
-        }
+        tension += 14;
+        if(tension >= 35 && tension <= 65 && Math.random() < 0.25) endGame(true);
       }
     }
 
-    function updateTensionBar() {
-      const fill = document.getElementById('tension-fill');
-      fill.style.width = tension + '%';
-      fill.style.backgroundColor = (tension >= 40 && tension <= 70) ? 'var(--success)' : 'var(--danger)';
-    }
-
-    function endMinigame(success) {
+    function endGame(win) {
       clearInterval(gameInterval);
       isFishing = false;
-      const btn = document.getElementById('btn-cast');
-      const status = document.getElementById('game-status');
-      btn.innerText = "🎣 Auswerfen";
-
-      if (success) {
-        const fish = catchRandomFish();
-        state.inventory.push(fish);
-        state.seasonScore += fish.pts;
-
-        // Erfolge
-        if(!state.achievements[0].done) {
-          state.achievements[0].done = true;
-          alert("🏆 ERFOLG FREIGESCHALTET: Erster Fang!");
+      document.getElementById('btn-cast').innerText = "🎣 Auswerfen";
+      if(win) {
+        let item = FISH[Math.floor(Math.random() * FISH.length)];
+        if(item.isTrash) {
+          state.trash++;
+          alert("👟 Du hast Müll gefischt! Nutze ihn zum Craften.");
+        } else {
+          state.gold += item.val;
+          state.score += item.pts;
+          if(!state.dex.includes(item.id)) state.dex.push(item.id);
+          alert(`🎉 ${item.name} gefangen! +${item.val}g`);
         }
-
-        if(!state.unlockedDex.includes(fish.id)) {
-          state.unlockedDex.push(fish.id);
-        }
-
-        status.innerText = `🎉 ${fish.name} gefangen! Wert: ${fish.val} Gold (+${fish.pts} Saison-Punkte)`;
       } else {
-        status.innerText = "💥 Die Schnur ist gerissen!";
+        alert("💥 Schnur gerissen!");
       }
       updateUI();
     }
 
-    function catchRandomFish() {
-      const rand = Math.random() + (state.hasTalisman ? 0.05 : 0);
-      if(rand > 0.95) return FISH_DATABASE[4]; // Schatztruhe
-      if(rand > 0.85) return FISH_DATABASE[3]; // Legendär
-      if(rand > 0.65) return FISH_DATABASE[2]; // Episch
-      if(rand > 0.40) return FISH_DATABASE[1]; // Selten
-      return FISH_DATABASE[0];
+    function craftBait() {
+      if(state.trash >= 3) { state.trash -= 3; alert("🪱 Spezial-Köder hergestellt!"); updateUI(); }
+      else alert("Nicht genug Müll!");
     }
 
-    function repairRod() {
-      if(state.gold >= 20) {
-        state.gold -= 20;
-        state.durability = 100;
-        updateUI();
-      } else {
-        alert("Nicht genug Gold!");
-      }
+    function claimAquarium() {
+      state.gold += state.aquaGold; state.aquaGold = 0; updateUI();
     }
 
-    function buyTalisman() {
-      if(state.hasTalisman) {
-        alert("Du besitzt diesen Talisman bereits!");
-        return;
-      }
-      if(state.gold >= 150) {
-        state.gold -= 150;
-        state.hasTalisman = true;
-        alert("🍀 Glücks-Talisman ausgerüstet!");
-        updateUI();
-      } else {
-        alert("Nicht genug Gold!");
-      }
+    function attackBoss() {
+      if(state.bossHP > 0) { state.bossHP -= 10; state.score += 20; updateUI(); }
     }
+
+    function repair() { state.gold >= 20 ? (state.gold -= 20, state.dur = 100, updateUI()) : alert("Zu wenig Gold!"); }
+    function buySkin() { state.gold >= 100 ? (state.gold -= 100, state.skin = true, alert("🎩 Hut gekauft!"), updateUI()) : alert("Zu wenig Gold!"); }
 
     function renderDex() {
-      const grid = document.getElementById('dex-grid');
-      grid.innerHTML = FISH_DATABASE.map(f => {
-        const isUnlocked = state.unlockedDex.includes(f.id);
-        return `
-          <div class="dex-card ${isUnlocked ? '' : 'locked'}">
-            <div style="font-size:2rem">${isUnlocked ? f.icon : '❓'}</div>
-            <h4>${isUnlocked ? f.name : '???'}</h4>
-            <p style="font-size:0.8rem; color:var(--purple)">${f.rarity}</p>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderQuests() {
-      const list = document.getElementById('quest-list');
-      list.innerHTML = state.quests.map(q => `
-        <div class="quest-card">
-          <h4>${q.text}</h4>
-          <p style="font-size:0.85rem; margin:0.2rem 0;">Fortschritt: ${q.current}/${q.target}</p>
-          <p style="font-size:0.85rem; color:var(--gold); margin:0;">Belohnung: ${q.reward} Gold</p>
+      document.getElementById('dex-grid').innerHTML = FISH.map(f => `
+        <div class="card dex-card ${state.dex.includes(f.id) ? '' : 'locked'}">
+          <div style="font-size:1.5rem">${f.icon}</div>
+          <b>${f.name}</b>
         </div>
       `).join('');
     }
 
-    function renderAchievements() {
-      const grid = document.getElementById('achievement-grid');
-      grid.innerHTML = state.achievements.map(a => `
-        <div class="card" style="border-color:${a.done ? 'var(--gold)' : '#334155'}">
-          <h4>${a.done ? '🌟' : '🔒'} ${a.title}</h4>
-          <p style="font-size:0.8rem; color:#94a3b8;">${a.desc}</p>
-        </div>
-      `).join('');
+    function renderLB() {
+      document.getElementById('lb-body').innerHTML = `<tr><td>1.</td><td>Du</td><td>${state.score} Pkt.</td></tr>`;
     }
 
-    function renderInventory() {
-      const grid = document.getElementById('inventory-grid');
-      if (state.inventory.length === 0) {
-        grid.innerHTML = '<p style="color:#94a3b8">Keine Fische im Rucksack.</p>';
-        return;
-      }
-      grid.innerHTML = state.inventory.map((item, idx) => `
-        <div class="card">
-          <div style="font-size:2rem">${item.icon}</div>
-          <h4>${item.name}</h4>
-          <p>${item.val} Gold</p>
-          <button class="btn-action" onclick="sellItem(${idx})">Verkaufen</button>
-        </div>
-      `).join('');
-    }
-
-    function sellItem(idx) {
-      state.gold += state.inventory[idx].val;
-      state.inventory.splice(idx, 1);
-      updateUI();
-    }
-
-    function renderLeaderboard() {
-      const body = document.getElementById('leaderboard-body');
-      body.innerHTML = leaderboard.map((entry, idx) => `
-        <tr style="${entry.name === 'Du' ? 'font-weight:bold; color:var(--accent);' : ''}">
-          <td>${idx + 1}.</td>
-          <td>${entry.name}</td>
-          <td>${entry.score} Pkt.</td>
-        </tr>
-      `).join('');
-    }
-
-    function revealPrizeCode() {
-      if (leaderboard[0].name === "Du" && state.seasonScore > 0) {
-        alert(`🎉 HERZLICHEN GLÜCKWUNSCH!\nDein Gewinn-Code lautet: ${prizeData.code}`);
-      } else {
-        alert("🔒 Du musst auf Platz 1 der Rangliste stehen, um den Code freizuschalten!");
-      }
-    }
-
-    function resetData() {
-      if(confirm("Möchtest du wirklich alle Spieldaten zurücksetzen?")) {
-        localStorage.removeItem('tide_tackle_rpg');
-        location.reload();
-      }
-    }
+    // Passiver Aquarium-Timer
+    setInterval(() => { state.aquaGold += 1; updateUI(); }, 3000);
 
     updateUI();
   </script>
