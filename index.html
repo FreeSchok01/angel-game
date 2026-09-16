@@ -785,16 +785,25 @@
 
     // --- 9. INITIALIZATION & ANIMATED LOADER ---
     let loadProgress = 0;
+    const loadBar = document.getElementById('load-bar');
+    const loadText = document.getElementById('load-text');
+
     const loadInterval = setInterval(() => {
       loadProgress += 20;
-      document.getElementById('load-bar').style.width = loadProgress + '%';
-      if(loadProgress === 40) document.getElementById('load-text').innerText = 'Berechne 3D Wellenphysik...';
-      if(loadProgress === 80) document.getElementById('load-text').innerText = 'Generiere Avatar Studio & Fish-Dex...';
-      if(loadProgress >= 100) {
+      
+      if (loadBar) loadBar.style.width = loadProgress + '%';
+      if (loadText) {
+        if (loadProgress === 40) loadText.innerText = 'Berechne 3D Wellenphysik...';
+        if (loadProgress === 80) loadText.innerText = 'Generiere Avatar Studio & Fish-Dex...';
+      }
+
+      if (loadProgress >= 100) {
         clearInterval(loadInterval);
         const ls = document.getElementById('loading-screen');
-        ls.style.opacity = '0';
-        setTimeout(() => ls.style.display = 'none', 600);
+        if (ls) {
+          ls.style.opacity = '0';
+          setTimeout(() => ls.style.display = 'none', 600);
+        }
       }
     }, 200);
 
