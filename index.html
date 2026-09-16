@@ -3,56 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twitch Angel-Hub Pro MMO</title>
+  <title>Tide & Tackle: Twitch Fishing RPG</title>
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --panel-bg: #1e293b;
+      --bg-dark: #0a0f1d;
+      --panel-bg: #151d30;
       --accent: #38bdf8;
       --text: #f8fafc;
       --gold: #facc15;
-      --purple: #a855f7;
+      --purple: #c084fc;
+      --danger: #ef4444;
+      --success: #22c55e;
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text);
       padding-bottom: 2rem;
+      user-select: none;
     }
 
     header {
-      background-color: var(--panel-bg);
+      background: linear-gradient(180deg, #1e293b 0%, var(--panel-bg) 100%);
       padding: 1rem;
       text-align: center;
       border-bottom: 2px solid var(--accent);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
     nav {
       display: flex;
-      justify-content: flex-start;
       gap: 0.5rem;
-      background: #182234;
+      background: #0f172a;
       padding: 0.6rem;
       overflow-x: auto;
+      border-bottom: 1px solid #1e293b;
     }
 
     .nav-btn {
-      background: transparent;
+      background: var(--panel-bg);
       border: 1px solid #334155;
       color: var(--text);
-      padding: 0.5rem 0.9rem;
-      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
       white-space: nowrap;
+      transition: all 0.2s;
     }
 
     .nav-btn.active {
       background: var(--accent);
       color: var(--bg-dark);
       border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
     main {
@@ -62,17 +68,20 @@
     }
 
     .stats-bar {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
       background: var(--panel-bg);
-      padding: 0.8rem 1.2rem;
-      border-radius: 8px;
+      padding: 0.8rem;
+      border-radius: 10px;
       margin-bottom: 1rem;
-      font-weight: bold;
+      border: 1px solid #1e293b;
+      text-align: center;
     }
 
-    .stat-gold { color: var(--gold); }
-    .stat-prestige { color: var(--purple); }
+    .stat-val { font-weight: bold; display: block; font-size: 1.1rem; }
+    .gold { color: var(--gold); }
+    .purple { color: var(--purple); }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -86,127 +95,221 @@
     .card {
       background: var(--panel-bg);
       border: 1px solid #334155;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 0.8rem;
       text-align: center;
+      position: relative;
     }
 
     .btn-action {
       background: var(--accent);
       color: var(--bg-dark);
       border: none;
-      padding: 0.5rem;
-      border-radius: 4px;
+      padding: 0.6rem;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
       width: 100%;
       margin-top: 0.5rem;
     }
 
-    .zone-card {
-      background: var(--panel-bg);
-      border: 2px solid #334155;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 0.8rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* MINIGAME STYLES */
+    .minigame-container {
+      background: #0f172a;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
     }
 
-    .zone-card.selected { border-color: var(--accent); background: #1e3a5f; }
-    .locked { opacity: 0.4; filter: grayscale(1); }
+    .tension-bar-bg {
+      width: 100%;
+      height: 24px;
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 1rem 0;
+      position: relative;
+      border: 1px solid #475569;
+    }
+
+    .tension-bar-fill {
+      height: 100%;
+      width: 50%;
+      background: var(--success);
+      transition: width 0.1s linear, background-color 0.2s;
+    }
+
+    .target-zone {
+      position: absolute;
+      left: 40%;
+      width: 30%;
+      height: 100%;
+      background: rgba(56, 189, 248, 0.3);
+      border-left: 2px dashed var(--accent);
+      border-right: 2px dashed var(--accent);
+      top: 0;
+    }
+
+    /* BOSS EVENT STYLES */
+    .boss-card {
+      background: linear-gradient(135deg, #450a0a 0%, #18181b 100%);
+      border: 2px solid var(--danger);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .hp-bar-bg {
+      background: #27272a;
+      height: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .hp-bar-fill {
+      background: var(--danger);
+      height: 100%;
+      width: 100%;
+    }
+
+    .weather-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      background: #1e293b;
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h2 style="margin:0">🎣 Twitch Angel-Hub MMO</h2>
+    <h2 style="margin:0">⚔️ Tide & Tackle RPG</h2>
+    <div id="weather-display" class="weather-badge">☀️ Wetter: Sonnig (+0% Luck)</div>
   </header>
 
   <nav>
-    <button class="nav-btn active" onclick="openTab('inventory')">🎒 Rucksack</button>
-    <button class="nav-btn" onclick="openTab('zones')">🗺️ Gewässer</button>
-    <button class="nav-btn" onclick="openTab('shop')">🏪 Shop</button>
-    <button class="nav-btn" onclick="openTab('market')">⚖️ Markt</button>
-    <button class="nav-btn" onclick="openTab('album')">📖 Album</button>
+    <button class="nav-btn active" onclick="openTab('action')">🎣 Angeln</button>
+    <button class="nav-btn" onclick="openTab('inventory')">🎒 Rucksack</button>
+    <button class="nav-btn" onclick="openTab('gear')">🛡️ Ausrüstung</button>
+    <button class="nav-btn" onclick="openTab('skills')">✨ Talente</button>
+    <button class="nav-btn" onclick="openTab('crafting')">⚒️ Schmiede</button>
+    <button class="nav-btn" onclick="openTab('boss')">🐉 Weltboss</button>
   </nav>
 
   <main>
     <div class="stats-bar">
-      <div>🐥 Level: <strong id="user-level">1</strong></div>
-      <div class="stat-gold">🪙 Gold: <strong id="user-gold">0</strong></div>
-      <div class="stat-prestige">👑 Prestige: <strong id="user-prestige">0</strong></div>
+      <div>Level<span id="user-level" class="stat-val">1</span></div>
+      <div>Gold<span id="user-gold" class="stat-val gold">100</span></div>
+      <div>XP<span id="user-xp" class="stat-val">0/50</span></div>
+      <div>Skillpunkte<span id="user-sp" class="stat-val purple">0</span></div>
     </div>
 
-    <!-- TEST-STEUERUNG -->
-    <button class="btn-action" style="margin-bottom: 1.2rem; background: #6366f1; color: white;" onclick="simulateCatch()">🧪 Test-Fang in aktiver Zone</button>
+    <!-- TAB: ACTION / FANG MINIGAME -->
+    <div id="tab-action" class="tab-content active">
+      <div class="minigame-container">
+        <h3 id="game-status">Klicke "Auswerfen", um zu starten!</h3>
+        
+        <div class="tension-bar-bg">
+          <div class="target-zone"></div>
+          <div id="tension-fill" class="tension-bar-fill"></div>
+        </div>
+
+        <button id="btn-cast" class="btn-action" style="font-size:1.2rem; padding: 0.8rem;" onclick="handleMainAction()">🎣 Auswerfen</button>
+      </div>
+    </div>
 
     <!-- TAB: RUCKSACK -->
-    <div id="tab-inventory" class="tab-content active">
-      <h3>Dein Inventar</h3>
+    <div id="tab-inventory" class="tab-content">
+      <h3>Inventar & Materialien</h3>
       <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- TAB: GEWÄSSER -->
-    <div id="tab-zones" class="tab-content">
-      <h3>Angel-Zonen</h3>
-      <div id="zones-list"></div>
-    </div>
-
-    <!-- TAB: SHOP -->
-    <div id="tab-shop" class="tab-content">
-      <h3>Upgrades & Prestige</h3>
+    <!-- TAB: AUSRÜSTUNG -->
+    <div id="tab-gear" class="tab-content">
+      <h3>Deine Ausrüstung</h3>
       <div class="grid">
         <div class="card">
-          <div style="font-size:2rem">🎣</div>
-          <h4>Ruten-Upgrade</h4>
-          <p>+10% Verkaufswert</p>
-          <button class="btn-action" onclick="buyUpgrade()">150 Gold</button>
+          <h4>🎣 Rute</h4>
+          <p id="gear-rod">Holzstock</p>
+          <button class="btn-action" onclick="upgradeGear('rod')">Upgraden (100g)</button>
         </div>
-        <div class="card" style="border-color: var(--purple);">
-          <div style="font-size:2rem">👑</div>
-          <h4>Prestige</h4>
-          <p>Ab Level 10 möglich</p>
-          <button class="btn-action" style="background: var(--purple); color:white;" onclick="doPrestige()">Prestige Reset</button>
+        <div class="card">
+          <h4>🧵 Schnur</h4>
+          <p id="gear-line">Hanfseil</p>
+          <button class="btn-action" onclick="upgradeGear('line')">Upgraden (100g)</button>
         </div>
       </div>
     </div>
 
-    <!-- TAB: MARKTPLATZ -->
-    <div id="tab-market" class="tab-content">
-      <h3>Spieler-Marktplatz</h3>
-      <div class="grid" id="market-grid"></div>
+    <!-- TAB: SKILLS -->
+    <div id="tab-skills" class="tab-content">
+      <h3>Talentbaum</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>💰 Goldsucher</h4>
+          <p>+15% Gold beim Verkaufen</p>
+          <button class="btn-action" onclick="learnSkill('gold')">Lernen (1 SP)</button>
+        </div>
+        <div class="card">
+          <h4>🍀 Glückspilz</h4>
+          <p>+10% Seltenheits-Chancen</p>
+          <button class="btn-action" onclick="learnSkill('luck')">Lernen (1 SP)</button>
+        </div>
+      </div>
     </div>
 
-    <!-- TAB: ALBUM -->
-    <div id="tab-album" class="tab-content">
-      <h3>Fisch-Kompendium</h3>
-      <div class="grid" id="album-grid"></div>
+    <!-- TAB: CRAFTING -->
+    <div id="tab-crafting" class="tab-content">
+      <h3>Handwerk</h3>
+      <div class="card" style="text-align:left;">
+        <h4>🧪 Meeres-Elixier</h4>
+        <p>Benötigt: 2x Magie-Schuppe, 1x Treibholz</p>
+        <button class="btn-action" onclick="craftItem()">Herstellen</button>
+      </div>
+    </div>
+
+    <!-- TAB: WELTBOSS -->
+    <div id="tab-boss" class="tab-content">
+      <div class="boss-card">
+        <h2 style="margin:0; color:var(--danger)">🐙 Der Urzeit-Kraken</h2>
+        <p>Community-Raid Event</p>
+        <div class="hp-bar-bg">
+          <div id="boss-hp" class="hp-bar-fill"></div>
+        </div>
+        <p id="boss-hp-text" style="margin-top:0.5rem">5000 / 5000 HP</p>
+        <button class="btn-action" style="background:var(--danger); color:white;" onclick="attackBoss()">⚔️ Boss Angreifen!</button>
+      </div>
     </div>
   </main>
 
   <script>
-    let playerData = JSON.parse(localStorage.getItem('angel_mmo_data')) || {
-      gold: 50,
-      xp: 0,
-      level: 1,
-      prestige: 0,
-      currentZone: 0,
+    // GAME STATE
+    let state = JSON.parse(localStorage.getItem('tide_tackle_rpg')) || {
+      level: 1, xp: 0, gold: 100, sp: 0,
       inventory: [],
-      album: []
+      materials: { scale: 0, wood: 0 },
+      gear: { rod: 1, line: 1 },
+      skills: { gold: 0, luck: 0 },
+      bossHp: 5000
     };
 
-    const ZONES = [
-      { name: "Ententeich 🦆", reqLevel: 1, fishes: [{ id: "barsch", name: "Barsch", icon: "🐟", val: 10 }, { id: "schuh", name: "Schuh", icon: "👞", val: 2 }] },
-      { name: "Tiefer Ozean 🌊", reqLevel: 3, fishes: [{ id: "lachs", name: "Lachs", icon: "🍣", val: 35 }, { id: "hai", name: "Hai", icon: "🦈", val: 100 }] },
-      { name: "Vulkan-See 🌋", reqLevel: 5, fishes: [{ id: "drache", name: "Feuer-Aal", icon: "🐉", val: 300 }] }
+    let weatherList = [
+      { name: "Sonnig ☀️", luck: 0 },
+      { name: "Regen 🌧️", luck: 15 },
+      { name: "Sturm 🌩️", luck: 35 }
     ];
+    let currentWeather = weatherList[0];
 
-    let marketOffers = [
-      { id: 1, name: "Feuer-Aal", icon: "🐉", price: 250, seller: "StreamBoss" },
-      { id: 2, name: "Lachs", icon: "🍣", price: 28, seller: "AnglerKing" }
-    ];
+    // MINIGAME STATE
+    let isFishing = false;
+    let tension = 50;
+    let gameInterval = null;
 
     function openTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -215,149 +318,124 @@
       event.currentTarget.classList.add('active');
     }
 
-    function saveData() {
-      localStorage.setItem('angel_mmo_data', JSON.stringify(playerData));
+    function updateUI() {
+      document.getElementById('user-level').innerText = state.level;
+      document.getElementById('user-gold').innerText = state.gold;
+      document.getElementById('user-xp').innerText = `${state.xp}/${state.level * 50}`;
+      document.getElementById('user-sp').innerText = state.sp;
+      document.getElementById('boss-hp-text').innerText = `${state.bossHp} / 5000 HP`;
+      document.getElementById('boss-hp').style.width = `${(state.bossHp / 5000) * 100}%`;
+      renderInventory();
+      saveGame();
+    }
+
+    function saveGame() {
+      localStorage.setItem('tide_tackle_rpg', JSON.stringify(state));
+    }
+
+    // MINIGAME LOGIC
+    function handleMainAction() {
+      const btn = document.getElementById('btn-cast');
+      const status = document.getElementById('game-status');
+
+      if (!isFishing) {
+        // Start Fishing
+        isFishing = true;
+        btn.innerText = "🎣 Einholen (Halt Trik!)";
+        status.innerText = "Ein Fisch beißt an! Halte die Spannung im blauen Bereich!";
+        tension = 50;
+
+        gameInterval = setInterval(() => {
+          tension -= 3 + (state.gear.line * 0.5); // Fällt automatisch ab
+          if (tension <= 0 || tension >= 100) {
+            endMinigame(false);
+          }
+          updateTensionBar();
+        }, 100);
+      } else {
+        // Player clicks reel button
+        tension += 12;
+        if (tension >= 40 && tension <= 70) {
+          // In target zone
+          if (Math.random() < 0.15) {
+            endMinigame(true);
+          }
+        }
+      }
+    }
+
+    function updateTensionBar() {
+      const fill = document.getElementById('tension-fill');
+      fill.style.width = tension + '%';
+      fill.style.backgroundColor = (tension >= 40 && tension <= 70) ? 'var(--success)' : 'var(--danger)';
+    }
+
+    function endMinigame(success) {
+      clearInterval(gameInterval);
+      isFishing = false;
+      const btn = document.getElementById('btn-cast');
+      const status = document.getElementById('game-status');
+      btn.innerText = "🎣 Auswerfen";
+
+      if (success) {
+        const catchVal = Math.floor(Math.random() * 30) + 10;
+        state.inventory.push({ name: "Glanz-Fisch", val: catchVal, icon: "🐟" });
+        addXP(20);
+        status.innerText = `🎉 Erfolgreich gefangen! Wert: ${catchVal} Gold`;
+      } else {
+        status.innerText = "💥 Die Schnur ist gerissen oder der Fisch ist entwischt!";
+      }
       updateUI();
     }
 
-    function updateUI() {
-      document.getElementById('user-gold').innerText = playerData.gold;
-      document.getElementById('user-level').innerText = playerData.level;
-      document.getElementById('user-prestige').innerText = playerData.prestige;
-      renderInventory();
-      renderZones();
-      renderMarket();
-      renderAlbum();
-    }
-
-    function simulateCatch() {
-      const zone = ZONES[playerData.currentZone];
-      const fish = zone.fishes[Math.floor(Math.random() * zone.fishes.length)];
-      
-      playerData.inventory.push({...fish});
-      playerData.xp += 15;
-
-      if (!playerData.album.includes(fish.id)) playerData.album.push(fish.id);
-
-      // Level-Up Check
-      if (playerData.xp >= playerData.level * 50) {
-        playerData.level += 1;
-        alert(`🎉 Level Up! Du bist jetzt Level ${playerData.level}!`);
-      }
-
-      saveData();
-    }
-
-    function sellItem(index) {
-      const item = playerData.inventory[index];
-      const multiplier = 1 + (playerData.prestige * 0.5);
-      playerData.gold += Math.round(item.val * multiplier);
-      playerData.inventory.splice(index, 1);
-      saveData();
-    }
-
-    function listOnMarket(index) {
-      const item = playerData.inventory[index];
-      const price = prompt(`Für wie viel Gold möchtest du ${item.name} auf dem Markt anbieten?`, item.val);
-      if (price && !isNaN(price)) {
-        marketOffers.push({ id: Date.now(), name: item.name, icon: item.icon, price: parseInt(price), seller: "Du" });
-        playerData.inventory.splice(index, 1);
-        saveData();
+    function addXP(amount) {
+      state.xp += amount;
+      if (state.xp >= state.level * 50) {
+        state.xp -= state.level * 50;
+        state.level += 1;
+        state.sp += 1;
+        alert(`🎉 LEVEL UP! Du bist jetzt Level ${state.level} (+1 Skillpunkt)`);
       }
     }
 
-    function buyMarketItem(offerId) {
-      const idx = marketOffers.findIndex(o => o.id === offerId);
-      const offer = marketOffers[idx];
-      if (playerData.gold >= offer.price) {
-        playerData.gold -= offer.price;
-        playerData.inventory.push({ name: offer.name, icon: offer.icon, val: offer.price });
-        marketOffers.splice(idx, 1);
-        saveData();
-      } else {
-        alert("Nicht genug Gold!");
-      }
-    }
-
-    function doPrestige() {
-      if (playerData.level >= 10) {
-        playerData.prestige += 1;
-        playerData.level = 1;
-        playerData.xp = 0;
-        playerData.gold = 50;
-        playerData.inventory = [];
-        alert("👑 Prestige durchgeführt! Du erhältst dauerhaft +50% Gold-Bonus!");
-        saveData();
-      } else {
-        alert("Du brauchst mindestens Level 10 für Prestige!");
+    function attackBoss() {
+      if (state.bossHp > 0) {
+        const dmg = 50 + (state.level * 10);
+        state.bossHp = Math.max(0, state.bossHp - dmg);
+        state.gold += 15;
+        updateUI();
       }
     }
 
     function renderInventory() {
       const grid = document.getElementById('inventory-grid');
-      if (playerData.inventory.length === 0) {
-        grid.innerHTML = '<p style="color:#94a3b8">Dein Rucksack ist leer.</p>';
+      if (state.inventory.length === 0) {
+        grid.innerHTML = '<p style="color:#94a3b8">Keine Fische im Rucksack.</p>';
         return;
       }
-      grid.innerHTML = playerData.inventory.map((item, idx) => `
+      grid.innerHTML = state.inventory.map((item, idx) => `
         <div class="card">
           <div style="font-size:2rem">${item.icon}</div>
-          <h4 style="margin:0.2rem 0">${item.name}</h4>
-          <p style="margin:0; font-size:0.8rem">${item.val} Gold</p>
+          <h4>${item.name}</h4>
+          <p>${item.val} Gold</p>
           <button class="btn-action" onclick="sellItem(${idx})">Verkaufen</button>
-          <button class="btn-action" style="background:#f59e0b; color:white;" onclick="listOnMarket(${idx})">Anbieten</button>
         </div>
       `).join('');
     }
 
-    function renderZones() {
-      const list = document.getElementById('zones-list');
-      list.innerHTML = ZONES.map((zone, idx) => {
-        const unlocked = playerData.level >= zone.reqLevel;
-        const selected = playerData.currentZone === idx;
-        return `
-          <div class="zone-card ${selected ? 'selected' : ''} ${unlocked ? '' : 'locked'}">
-            <div>
-              <h4 style="margin:0">${zone.name}</h4>
-              <small>${unlocked ? 'Benötigt Level ' + zone.reqLevel : '🔒 Freischaltung ab Level ' + zone.reqLevel}</small>
-            </div>
-            ${unlocked ? `<button class="btn-action" style="width:auto;" onclick="selectZone(${idx})">${selected ? 'Aktiv' : 'Reisen'}</button>` : ''}
-          </div>
-        `;
-      }).join('');
+    function sellItem(idx) {
+      const item = state.inventory[idx];
+      const bonus = 1 + (state.skills.gold * 0.15);
+      state.gold += Math.round(item.val * bonus);
+      state.inventory.splice(idx, 1);
+      updateUI();
     }
 
-    function selectZone(idx) {
-      playerData.currentZone = idx;
-      saveData();
-    }
-
-    function renderMarket() {
-      const grid = document.getElementById('market-grid');
-      grid.innerHTML = marketOffers.map(o => `
-        <div class="card">
-          <div style="font-size:2rem">${o.icon}</div>
-          <h4 style="margin:0.2rem 0">${o.name}</h4>
-          <small>Von: ${o.seller}</small>
-          <p style="margin:0.3rem 0; font-weight:bold; color:var(--gold)">${o.price} Gold</p>
-          ${o.seller !== "Du" ? `<button class="btn-action" onclick="buyMarketItem(${o.id})">Kaufen</button>` : '<small style="color:#94a3b8">Dein Angebot</small>'}
-        </div>
-      `).join('');
-    }
-
-    function renderAlbum() {
-      const grid = document.getElementById('album-grid');
-      const allFishes = ZONES.flatMap(z => z.fishes);
-      grid.innerHTML = allFishes.map(f => {
-        const unlocked = playerData.album.includes(f.id);
-        return `
-          <div class="card ${unlocked ? '' : 'locked'}">
-            <div style="font-size:2rem">${unlocked ? f.icon : '❓'}</div>
-            <h4 style="margin:0.2rem 0">${unlocked ? f.name : 'Unbekannt'}</h4>
-          </div>
-        `;
-      }).join('');
-    }
+    // WEATHER SYSTEM CYCLE
+    setInterval(() => {
+      currentWeather = weatherList[Math.floor(Math.random() * weatherList.length)];
+      document.getElementById('weather-display').innerText = `Wetter: ${currentWeather.name} (+${currentWeather.luck}% Luck)`;
+    }, 30000);
 
     updateUI();
   </script>
