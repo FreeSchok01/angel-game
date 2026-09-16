@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tide & Tackle: XXL Streamer Edition</title>
+  <title>Tide & Tackle: Ultimate XXL RPG</title>
   <style>
     :root {
       --bg-dark: #090d16; --panel-bg: #151d30; --accent: #38bdf8;
@@ -11,13 +11,28 @@
       --danger: #ef4444; --success: #22c55e;
     }
     body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-dark); color: var(--text); padding-bottom: 2rem; }
+
+    /* ANIMIERTER LOADING SCREEN */
+    #loading-screen {
+      position: fixed; inset: 0; background: #020617; z-index: 99999;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      transition: opacity 0.5s ease;
+    }
+    .anchor-loader { font-size: 4rem; animation: float 2s infinite ease-in-out; }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(10deg); } }
+    .progress-bar-bg { width: 260px; height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; margin-top: 1rem; border: 1px solid #334155; }
+    .progress-bar-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
+
     header { background: #020617; padding: 1rem; text-align: center; border-bottom: 2px solid var(--accent); }
     
+    /* USER BAR & LEVEL PROGRESION */
     .user-bar {
       background: var(--panel-bg); padding: 0.8rem 1.2rem; display: flex;
       justify-content: space-between; align-items: center; max-width: 1100px;
-      margin: 1rem auto; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap; gap: 0.5rem;
+      margin: 1rem auto; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap; gap: 0.8rem;
     }
+    .xp-bar-bg { width: 100%; height: 8px; background: #020617; border-radius: 4px; overflow: hidden; margin-top: 0.4rem; }
+    .xp-bar-fill { height: 100%; width: 0%; background: var(--purple); transition: width 0.3s; }
 
     nav { display: flex; gap: 0.4rem; background: #020617; padding: 0.6rem; overflow-x: auto; justify-content: center; }
     .nav-btn { background: var(--panel-bg); border: 1px solid #334155; color: var(--text); padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
@@ -25,300 +40,215 @@
 
     main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
     
-    .controls-bar { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .search-input, .select-input {
-      background: #020617; border: 1px solid #334155; color: var(--text);
-      padding: 0.6rem; border-radius: 6px; flex: 1; min-width: 200px;
-    }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
     .card { background: var(--panel-bg); border: 1px solid #334155; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; }
     
     .btn-action {
       background: var(--accent); color: #000; border: none;
-      padding: 0.5rem; border-radius: 6px; cursor: pointer;
+      padding: 0.6rem; border-radius: 6px; cursor: pointer;
       font-weight: bold; margin-top: 0.8rem; width: 100%;
     }
     .btn-action:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-    .tier-A { background: #334155; color: #fff; }
-    .tier-E { background: #1e3a8a; color: #93c5fd; }
-    .tier-J { background: #581c87; color: var(--gold); border: 1px solid var(--gold); }
-
+    .quest-card { border-left: 4px solid var(--accent); }
+    .quest-card.completed { border-left-color: var(--success); opacity: 0.8; }
+    
     .tab-content { display: none; }
     .tab-content.active { display: block; }
   </style>
 </head>
 <body>
 
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="anchor-loader">⚓</div>
+    <h2 style="color:var(--accent); margin-top:1rem;">Tide & Tackle: XXL</h2>
+    <small id="load-text" style="color:#94a3b8">Verbinde mit Twitch Engine...</small>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="load-bar"></div>
+    </div>
+  </div>
+
   <header>
-    <h2 style="margin:0">🎣 Tide & Tackle: XXL Database & Dashboard</h2>
-    <small style="color:#94a3b8">100 Ruten | 100 Köder | 100 Angel-Orte</small>
+    <h2 style="margin:0">🎣 Tide & Tackle: Streamer RPG System</h2>
+    <small style="color:#94a3b8">Quests • Crafting • Level & XP • Longterm Progression</small>
   </header>
 
-  <!-- USER BAR -->
+  <!-- USER STATUS BAR -->
   <div class="user-bar">
-    <div>👤 Angler: <strong id="u-name" style="color:var(--accent)">TwitchUser</strong></div>
-    <div>💰 Gold: <strong id="u-gold" style="color:var(--gold)">1,000</strong>g</div>
-    <div>🎣 Rute: <strong id="u-rod" style="color:var(--success)">R001 - Teleskop Light</strong></div>
-    <div>📍 Ort: <strong id="u-loc" style="color:var(--purple)">O001 - Dorfweiher St. Ulrich</strong></div>
+    <div style="flex: 1; min-width: 200px;">
+      <div>👤 Angler: <strong id="u-name" style="color:var(--accent)">TwitchUser</strong> | Level: <strong id="u-lvl" style="color:var(--purple)">1</strong></div>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-fill"></div></div>
+      <small style="font-size:0.75rem; color:#94a3b8"><span id="xp-text">0/100</span> XP bis Level Up</small>
+    </div>
+    <div>💰 Gold: <strong id="u-gold" style="color:var(--gold)">500</strong>g</div>
+    <div>🔩 Materialien: <strong id="u-mats" style="color:var(--success)">0</strong></div>
+    <div>🏆 Prestigepunkte: <strong id="u-prestige" style="color:var(--accent)">0</strong></div>
   </div>
 
   <nav>
-    <button class="nav-btn active" onclick="openTab('rods', event)">🎣 100 Ruten</button>
-    <button class="nav-btn" onclick="openTab('baits', event)">🪱 100 Köder</button>
-    <button class="nav-btn" onclick="openTab('locs', event)">🗺️ 100 Orte</button>
-    <button class="nav-btn" onclick="openTab('inv', event)">🎒 Inventar & Stats</button>
+    <button class="nav-btn active" onclick="openTab('quests', event)">📜 Quests & Aufgaben</button>
+    <button class="nav-btn" onclick="openTab('crafting', event)">⚒️ Crafting & Werkbank</button>
+    <button class="nav-btn" onclick="openTab('progression', event)">👑 Langzeit-Erfolge</button>
   </nav>
 
   <main>
-    <!-- SEARCH & FILTER BAR -->
-    <div class="controls-bar">
-      <input type="text" id="search-box" class="search-input" placeholder="Suchen nach Name, ID oder Tier..." oninput="filterItems()">
-      <select id="tier-filter" class="select-input" onchange="filterItems()">
-        <option value="ALL">Alle Tiers (A bis J)</option>
-        <option value="A">Tier A (Anfänger / Basic)</option>
-        <option value="B">Tier B (Fortgeschritten)</option>
-        <option value="C">Tier C (Profi)</option>
-        <option value="D">Tier D (Spezialist)</option>
-        <option value="E">Tier E (Heavy / Deep)</option>
-        <option value="F">Tier F (Meister)</option>
-        <option value="G">Tier G (Küste / Marine)</option>
-        <option value="H">Tier H (Offshore / Monster)</option>
-        <option value="I">Tier I (Exotisch)</option>
-        <option value="J">Tier J (Mythisch / Cyber)</option>
-      </select>
+    <!-- TAB 1: QUESTS -->
+    <div id="tab-quests" class="tab-content active">
+      <h3>📜 Tägliche & Wöchentliche Quests</h3>
+      <div class="grid" id="quests-grid"></div>
     </div>
 
-    <!-- TAB 1: 100 RUTEN -->
-    <div id="tab-rods" class="tab-content active">
-      <div class="grid" id="rods-grid"></div>
+    <!-- TAB 2: CRAFTING -->
+    <div id="tab-crafting" class="tab-content">
+      <h3>⚒️ Müll-Recycling & Spezial-Köder Herstellen</h3>
+      <p style="font-size:0.85rem; color:#94a3b8">Verarbeite Müll-Materialien aus Fängen zu High-End Ködern und Ruten-Upgrades.</p>
+      <div class="grid" id="crafting-grid"></div>
     </div>
 
-    <!-- TAB 2: 100 KÖDER -->
-    <div id="tab-baits" class="tab-content">
-      <div class="grid" id="baits-grid"></div>
-    </div>
-
-    <!-- TAB 3: 100 ORTE -->
-    <div id="tab-locs" class="tab-content">
-      <div class="grid" id="locs-grid"></div>
-    </div>
-
-    <!-- TAB 4: INVENTAR -->
-    <div id="tab-inv" class="tab-content">
-      <div class="card" style="max-width:600px; margin:0 auto;">
-        <h3>🎒 Dein Ausrüstungs-Status</h3>
-        <p><strong>Aktuelle Rute:</strong> <span id="inv-rod-text">Keine</span></p>
-        <p><strong>Aktueller Köder:</strong> <span id="inv-bait-text">Keiner</span></p>
-        <p><strong>Aktueller Ort:</strong> <span id="inv-loc-text">Keiner</span></p>
-        <hr style="border-color:#334155; margin:1rem 0;">
-        <p style="font-size:0.85rem; color:#94a3b8">Alle Boni und Ausrüstungen werden automatisch mit den Twitch-Chatbefehlen (<code>!angeln</code>) verrechnet.</p>
+    <!-- TAB 3: LANGZEIT-PROGRESSION -->
+    <div id="tab-progression" class="tab-content">
+      <h3>👑 Meilensteine & Prestige-Tree</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>🌟 Angler-Prestige I</h4>
+          <p style="font-size:0.8rem; color:#94a3b8">Setzt dein Level auf 1 zurück, erhöht aber dauerhaft alle Fangchancen um +10%.</p>
+          <button class="btn-action" onclick="claimPrestige()">Prestige Ausführen (Benötigt Lvl 50)</button>
+        </div>
+        <div class="card">
+          <h4>🏆 Meeres-Säuberer</h4>
+          <p style="font-size:0.8rem; color:#94a3b8">Sammle 100 Einheiten Müll.</p>
+          <button class="btn-action" disabled>0 / 100 Abgeschlossen</button>
+        </div>
       </div>
     </div>
   </main>
 
   <script>
-    // System-State
-    let user = {
-      gold: 1000,
-      currentRod: 0,
-      currentBait: 0,
-      currentLoc: 0,
-      ownedRods: [0],
-      ownedBaits: [0],
-      unlockedLocs: [0]
+    // FAKE LOADING SCREEN ANIMATION
+    let loadProgress = 0;
+    const loadInterval = setInterval(() => {
+      loadProgress += 20;
+      document.getElementById('load-bar').style.width = loadProgress + '%';
+      if(loadProgress === 40) document.getElementById('load-text').innerText = 'Lade 100 Ruten & Köder...';
+      if(loadProgress === 80) document.getElementById('load-text').innerText = 'Synchronisiere Chat-Quests...';
+      if(loadProgress >= 100) {
+        clearInterval(loadInterval);
+        document.getElementById('loading-screen').style.opacity = '0';
+        setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+      }
+    }, 250);
+
+    // USER DATA SYSTEM
+    let user = JSON.parse(localStorage.getItem('tt_rpg_state')) || {
+      name: "TwitchViewer",
+      lvl: 1, xp: 0, maxXp: 100,
+      gold: 500, mats: 12, prestige: 0,
+      quests: [
+        { id: 1, title: "Ersthelfer der Meere", desc: "Sammle 3x Müll", rewardGold: 100, rewardXp: 50, rewardMats: 5, done: false },
+        { id: 2, title: "Barsch-Jäger", desc: "Fange 5 normale Fische im Chat", rewardGold: 250, rewardXp: 120, rewardMats: 2, done: false },
+        { id: 3, title: "Tiefsee-Meister", desc: "Reise in ein Tier-C Gebiet", rewardGold: 500, rewardXp: 300, rewardMats: 10, done: false }
+      ]
     };
 
-    // Daten-Generatoren für die 100er-Listen
-    const TIERS = ['A','B','C','D','E','F','G','H','I','J'];
-    const ROD_NAMES = ["Teleskop Light", "Carbon Stippe", "Micro Jigger", "Zander Taktik", "Karpfen Klassiker", "Feeder Heavy", "Tremarella", "Boje Monster", "Fliegenrute", "Brandungs Titan", "Norwegen Seil", "Tenkara Traditional", "Nano Graphen", "Cyber Rod Pro"];
-    const BAIT_NAMES = ["Tauwurm", "Maden-Mix", "Monster Crab Boilie", "Action Shad", "Deep Runner Wobbler", "Spinner Silber", "Goldkopf Nymphe", "Wattwurm", "Slow Jig Metal", "Knoblauch Paste", "Cyber Lure"];
-    const LOC_NAMES = ["Dorfweiher St. Ulrich", "Rhein-Buhne Köln", "Bodensee Tiefen", "Schwedischer Schärengarten", "Forellenhof Quellgrund", "Ebro-Stausee", "Ostsee Strand", "Saltstraumen Strahl", "Amazonas Strom", "Bermuda Dreieck"];
+    const CRAFTING_RECIPES = [
+      { id: 'c1', name: '🪱 Bio-Köder-Pack', reqMats: 3, reward: '1x Spezial-Köder', xp: 20 },
+      { id: 'c2', name: '🎋 Carbon-Verstärkung', reqMats: 10, reward: '+5% Ruten-Stärke', xp: 75 },
+      { id: 'c3', name: '⚡ Elektro-Lure (Legendär)', reqMats: 25, reward: 'Tier-H Köder', xp: 200 }
+    ];
 
-    const RODS = Array.from({length: 100}, (_, i) => {
-      const tierIdx = Math.floor(i / 10);
-      return {
-        id: i,
-        code: `R${String(i+1).padStart(3, '0')}`,
-        name: `${ROD_NAMES[i % ROD_NAMES.length]} ${i+1}`,
-        tier: TIERS[tierIdx],
-        cost: (tierIdx + 1) * 150 + (i * 20),
-        power: (i + 1) * 5
-      };
-    });
-
-    const BAITS = Array.from({length: 100}, (_, i) => {
-      const tierIdx = Math.floor(i / 10);
-      return {
-        id: i,
-        code: `K${String(i+1).padStart(3, '0')}`,
-        name: `${BAIT_NAMES[i % BAIT_NAMES.length]} ${i+1}`,
-        tier: TIERS[tierIdx],
-        cost: (tierIdx + 1) * 50 + (i * 5),
-        attract: (i + 1) * 2
-      };
-    });
-
-    const LOCS = Array.from({length: 100}, (_, i) => {
-      const tierIdx = Math.floor(i / 10);
-      return {
-        id: i,
-        code: `O${String(i+1).padStart(3, '0')}`,
-        name: `${LOC_NAMES[i % LOC_NAMES.length]} ${i+1}`,
-        tier: TIERS[tierIdx],
-        cost: (tierIdx + 1) * 300 + (i * 50),
-        rarityBonus: (i + 1) * 3
-      };
-    });
-
-    // Navigation & Tabs
-    let currentTab = 'rods';
     function openTab(tab, e) {
-      currentTab = tab;
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
       if(e) e.currentTarget.classList.add('active');
-      filterItems();
     }
 
-    // Render-Logik mit Filter
-    function render() {
-      document.getElementById('u-gold').innerText = user.gold.toLocaleString();
-      document.getElementById('u-rod').innerText = `${RODS[user.currentRod].code} - ${RODS[user.currentRod].name}`;
-      document.getElementById('u-loc').innerText = `${LOCS[user.currentLoc].code} - ${LOCS[user.currentLoc].name}`;
+    function updateUI() {
+      document.getElementById('u-name').innerText = user.name;
+      document.getElementById('u-lvl').innerText = user.lvl;
+      document.getElementById('u-gold').innerText = user.gold;
+      document.getElementById('u-mats').innerText = user.mats;
+      document.getElementById('u-prestige').innerText = user.prestige;
       
-      document.getElementById('inv-rod-text').innerText = RODS[user.currentRod].name;
-      document.getElementById('inv-bait-text').innerText = BAITS[user.currentBait].name;
-      document.getElementById('inv-loc-text').innerText = LOCS[user.currentLoc].name;
+      document.getElementById('xp-text').innerText = `${user.xp}/${user.maxXp}`;
+      document.getElementById('xp-fill').style.width = (user.xp / user.maxXp * 100) + '%';
+
+      renderQuests();
+      renderCrafting();
+      localStorage.setItem('tt_rpg_state', JSON.stringify(user));
     }
 
-    function filterItems() {
-      const query = document.getElementById('search-box').value.toLowerCase();
-      const selectedTier = document.getElementById('tier-filter').value;
-
-      if(currentTab === 'rods') renderRods(query, selectedTier);
-      if(currentTab === 'baits') renderBaits(query, selectedTier);
-      if(currentTab === 'locs') renderLocs(query, selectedTier);
+    function addXP(amount) {
+      user.xp += amount;
+      if(user.xp >= user.maxXp) {
+        user.xp -= user.maxXp;
+        user.lvl++;
+        user.maxXp = Math.floor(user.maxXp * 1.5);
+        alert(`🎉 LEVEL UP! Du bist jetzt Level ${user.lvl}!`);
+      }
+      updateUI();
     }
 
-    function renderRods(q, tier) {
-      const grid = document.getElementById('rods-grid');
-      const filtered = RODS.filter(r => (tier === 'ALL' || r.tier === tier) && (r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(r => {
-        const owned = user.ownedRods.includes(r.id);
-        const active = user.currentRod === r.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${r.tier}">Tier ${r.tier}</span> <small style="color:#94a3b8">${r.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${r.name}</h4>
-              <small style="color:var(--accent)">Stärke: +${r.power} Pkt.</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${r.cost} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyRod(${r.id})">
-                ${active ? 'Ausgerüstet' : (owned ? 'Ausrüsten' : 'Kaufen')}
-              </button>
-            </div>
+    function renderQuests() {
+      const grid = document.getElementById('quests-grid');
+      grid.innerHTML = user.quests.map(q => `
+        <div class="card quest-card ${q.done ? 'completed' : ''}">
+          <div>
+            <h4>${q.title}</h4>
+            <p style="font-size:0.85rem; color:#94a3b8">${q.desc}</p>
+            <p style="font-size:0.8rem; color:var(--gold)">Belohnung: +${q.rewardGold}g | +${q.rewardXp} XP | +${q.rewardMats} Mats</p>
           </div>
-        `;
-      }).join('');
+          <button class="btn-action" ${q.done ? 'disabled' : ''} onclick="completeQuest(${q.id})">
+            ${q.done ? 'Abgeschlossen' : 'Quest Abschließen'}
+          </button>
+        </div>
+      `).join('');
     }
 
-    function renderBaits(q, tier) {
-      const grid = document.getElementById('baits-grid');
-      const filtered = BAITS.filter(b => (tier === 'ALL' || b.tier === tier) && (b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(b => {
-        const owned = user.ownedBaits.includes(b.id);
-        const active = user.currentBait === b.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${b.tier}">Tier ${b.tier}</span> <small style="color:#94a3b8">${b.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${b.name}</h4>
-              <small style="color:var(--success)">Lockwirkung: +${b.attract}%</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${b.cost} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="buyBait(${b.id})">
-                ${active ? 'Aktiviert' : (owned ? 'Aktivieren' : 'Kaufen')}
-              </button>
-            </div>
+    function completeQuest(id) {
+      const q = user.quests.find(x => x.id === id);
+      if(q && !q.done) {
+        q.done = true;
+        user.gold += q.rewardGold;
+        user.mats += q.rewardMats;
+        addXP(q.rewardXp);
+      }
+    }
+
+    function renderCrafting() {
+      const grid = document.getElementById('crafting-grid');
+      grid.innerHTML = CRAFTING_RECIPES.map(c => `
+        <div class="card">
+          <div>
+            <h4>${c.name}</h4>
+            <p style="font-size:0.85rem; color:var(--success)">Erfordert: ${c.reqMats} Müll-Materialien</p>
+            <p style="font-size:0.8rem; color:#94a3b8">Ergebnis: ${c.reward} (+${c.xp} XP)</p>
           </div>
-        `;
-      }).join('');
+          <button class="btn-action" onclick="craftItem(${c.reqMats}, ${c.xp})">Herstellen</button>
+        </div>
+      `).join('');
     }
 
-    function renderLocs(q, tier) {
-      const grid = document.getElementById('locs-grid');
-      const filtered = LOCS.filter(l => (tier === 'ALL' || l.tier === tier) && (l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q)));
-      
-      grid.innerHTML = filtered.map(l => {
-        const unlocked = user.unlockedLocs.includes(l.id);
-        const active = user.currentLoc === l.id;
-        return `
-          <div class="card">
-            <div>
-              <span class="badge tier-${l.tier}">Tier ${l.tier}</span> <small style="color:#94a3b8">${l.code}</small>
-              <h4 style="margin:0.5rem 0 0.2rem 0">${l.name}</h4>
-              <small style="color:var(--purple)">Seltenheit: +${l.rarityBonus}%</small>
-            </div>
-            <div>
-              <p style="color:var(--gold); font-weight:bold; margin:0.5rem 0;">${l.cost} Gold</p>
-              <button class="btn-action" ${active ? 'disabled' : ''} onclick="unlockLoc(${l.id})">
-                ${active ? 'Hier Angeln' : (unlocked ? 'Reisen' : 'Freischalten')}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+    function craftItem(req, xp) {
+      if(user.mats >= req) {
+        user.mats -= req;
+        addXP(xp);
+        alert("⚒️ Item erfolgreich hergestellt!");
+      } else {
+        alert("❌ Nicht genug Müll-Materialien!");
+      }
     }
 
-    // Kauf- & Ausrüst-Aktionen
-    function buyRod(id) {
-      const rod = RODS[id];
-      if(!user.ownedRods.includes(id)) {
-        if(user.gold >= rod.cost) {
-          user.gold -= rod.cost;
-          user.ownedRods.push(id);
-          user.currentRod = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentRod = id; }
-      render(); filterItems();
+    function claimPrestige() {
+      if(user.lvl >= 50) {
+        user.lvl = 1; user.xp = 0; user.prestige++;
+        alert("👑 Prestige-Aufstieg erfolgreich!");
+        updateUI();
+      } else { alert("Du musst mindestens Level 50 sein!"); }
     }
 
-    function buyBait(id) {
-      const bait = BAITS[id];
-      if(!user.ownedBaits.includes(id)) {
-        if(user.gold >= bait.cost) {
-          user.gold -= bait.cost;
-          user.ownedBaits.push(id);
-          user.currentBait = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentBait = id; }
-      render(); filterItems();
-    }
-
-    function unlockLoc(id) {
-      const loc = LOCS[id];
-      if(!user.unlockedLocs.includes(id)) {
-        if(user.gold >= loc.cost) {
-          user.gold -= loc.cost;
-          user.unlockedLocs.push(id);
-          user.currentLoc = id;
-        } else { return alert("Nicht genug Gold!"); }
-      } else { user.currentLoc = id; }
-      render(); filterItems();
-    }
-
-    // Start-Initialization
-    render();
-    filterItems();
+    updateUI();
   </script>
 </body>
 </html>
