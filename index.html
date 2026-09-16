@@ -257,7 +257,10 @@ async function apiGet(path) {
 // Liest die zuletzt vom Bot-Tool synchronisierte Cloud-Kopie (Supabase),
 // falls der Streamer gerade offline ist. Nur Lesevorschau, keine Aktionen.
 async function cloudGet() {
-  if (!supabaseClient || !streamerId || !user) return null;
+  if (!supabaseClient || !streamerId || !user) {
+    console.warn('☁️ Cloud-Lookup übersprungen: streamerId=', streamerId, 'user=', user, 'supabaseClient=', !!supabaseClient);
+    return null;
+  }
   try {
     const { data, error } = await supabaseClient
       .from('aquarium_cache')
@@ -265,9 +268,17 @@ async function cloudGet() {
       .eq('streamer_id', streamerId)
       .eq('twitch_username', user)
       .maybeSingle();
-    if (error || !data) return null;
+    if (error) {
+      console.error('☁️ Supabase-Cloud-Lookup fehlgeschlagen:', error);
+      return null;
+    }
+    if (!data) {
+      console.warn('☁️ Kein Cache-Eintrag für streamer_id=', streamerId, 'twitch_username=', user);
+      return null;
+    }
     return data;
   } catch (e) {
+    console.error('☁️ Cloud-Lookup Exception:', e);
     return null;
   }
 }
@@ -280,7 +291,12 @@ async function loadAquarium() {
   } else {
     const cached = await cloudGet();
     data = cached ? cached.aquarium : { fishes: [], slots: [], pending_coins: 0, coins_name: coinsName, max_slots: 6 };
-    if (!cached) showToast('Noch keine Cloud-Daten vorhanden - bitte kurz warten, bis der Streamer online ist.');
+    if (!cached) {
+      let reason = 'noch keine Daten für dich in der Cloud gefunden';
+      if (!streamerId) reason = 'kein "streamer"-Parameter im Link (bitte den Link erneut über !aquarium im Chat holen)';
+      else if (!user) reason = 'kein Nutzername erkannt';
+      showToast('☁️ Cloud-Vorschau nicht verfügbar: ' + reason + '.');
+    }
   }
   coinsName = data.coins_name || coinsName;
   document.getElementById('coinsName1').innerText = coinsName;
