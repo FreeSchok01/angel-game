@@ -1,469 +1,312 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎣 Angel Game - Aquarium & Ausrüstung</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<style>
-  :root {
-    --bg: #0B0E14; --panel: #141923; --panel-hover: #1E2533; --border: #2B1D45;
-    --purple: #772CE8; --purple-hover: #9146FF; --gold: #E6C875; --text: #FFFFFF; --muted: #8A92A6;
-  }
-  * { box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 20px; }
-  h1 { text-align: center; margin-bottom: 4px; }
-  .sub { text-align: center; color: var(--muted); margin-bottom: 20px; font-size: 14px; }
-  .setup-box { max-width: 520px; margin: 60px auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-align: center; }
-  .setup-box input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
-  .setup-box button { background: var(--purple); color: #fff; border: none; border-radius: 8px; padding: 12px 20px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
-  .setup-box button:hover { background: var(--purple-hover); }
-  .setup-box .or { color: var(--muted); font-size: 12px; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
-  .twitch-btn { background: #9146FF !important; }
-  .twitch-btn:hover { background: #772CE8 !important; }
-  .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-  .tab-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-  .tab-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); }
-  .view { display: none; max-width: 1000px; margin: 0 auto; }
-  .view.active { display: block; }
-  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-  .slot { background: radial-gradient(circle at 50% 30%, #1b3a52, #0b1a26); border: 2px dashed rgba(79,195,247,0.4); border-radius: 14px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 8px; text-align: center; }
-  .slot.filled { border-style: solid; border-color: #4FC3F7; }
-  .slot .rate { font-size: 11px; color: #4ADE80; margin-top: 4px; }
-  .slot .remove { position: absolute; top: 4px; right: 6px; color: #ff6b6b; font-size: 12px; cursor: pointer; }
-  .fishcard { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px; cursor: pointer; }
-  .fishcard.placed { opacity: 0.35; cursor: not-allowed; }
-  .rarity-common { color: #C7CCD8; } .rarity-rare { color: #4FC3F7; } .rarity-epic { color: #CE93D8; }
-  .rarity-legendary { color: #FFB74D; } .rarity-mythic { color: var(--gold); }
-  .shiny { text-shadow: 0 0 8px var(--gold); }
-  #pendingBar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-  .btn { background: #4ADE80; color: #0B0E14; border: none; border-radius: 8px; padding: 10px 18px; font-weight: bold; cursor: pointer; }
-  .btn:hover { filter: brightness(1.1); }
-  .btn.gold { background: var(--gold); }
-  .btn.purple { background: var(--purple); color: #fff; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
-  .rod-card, .loc-card { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .rod-card.equipped, .loc-card.active { border-color: var(--gold); }
-  .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--purple); }
-  .stat-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 10px; }
-  .stat { text-align: center; }
-  .stat .num { font-size: 22px; font-weight: bold; color: var(--gold); }
-  .stat .label { font-size: 11px; color: var(--muted); }
-  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--border); padding: 12px 20px; border-radius: 10px; display: none; z-index: 99; }
-  #offlineBanner { display:none; max-width:1000px; margin: 0 auto 16px; background:#3a2a0a; border:1px solid var(--gold); color:var(--gold); border-radius:10px; padding:12px 16px; font-size:13px; text-align:center; }
-  .logout-link { color: var(--muted); font-size: 11px; text-decoration: underline; cursor: pointer; margin-left: 6px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomes Twitch Community Goal Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .glow-bar {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.3);
+        }
+        .glow-completed {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.5);
+        }
+        .progress-stripe {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 1rem 1rem;
+            animation: move-stripes 1s linear infinite;
+        }
+        @keyframes move-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 1rem 0; }
+        }
+    </style>
 </head>
-<body>
+<body class="bg-transparent text-white overflow-hidden p-6 select-none">
 
-<h1>🎣 Angel Game</h1>
-<div class="sub" id="userLabel">Lade...</div>
+    <!-- OVERLAY CONTAINER -->
+    <div class="max-w-xl mx-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/60 rounded-2xl p-5 shadow-2xl relative">
+        
+        <!-- Header / Status Info -->
+        <div class="flex justify-between items-end mb-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="status-text" class="text-xs uppercase tracking-wider font-semibold text-slate-400">Nicht verbunden</span>
+                </div>
+                <h1 id="goal-title" class="text-xl font-black text-slate-100 tracking-wide drop-shadow">Community Goal</h1>
+            </div>
+            <div class="text-right">
+                <span id="goal-percent" class="text-2xl font-black text-purple-400">0%</span>
+            </div>
+        </div>
 
-<div id="setupBox" class="setup-box" style="display:none;">
-  <h3>Verbindung einrichten</h3>
-  <p class="hint">Verbinde dich mit deinem echten Twitch-Konto - dein Nutzername wird dann automatisch & verifiziert übernommen.</p>
-  <button class="twitch-btn" onclick="loginWithTwitch()">🟣 Mit Twitch verbinden</button>
-  <div class="or">oder</div>
-  <p class="hint">Rufe diese Seite über den <b>!aquarium</b>-Befehl im Twitch-Chat des Streamers auf, oder trage die Daten manuell ein:</p>
-  <input id="inUser" placeholder="Dein Twitch-Nutzername">
-  <input id="inApi" placeholder="Server-Adresse (z.B. https://xyz.ngrok-free.app)">
-  <button onclick="manualStart()">Verbinden (unverifiziert)</button>
-</div>
+        <!-- Progress Bar Container -->
+        <div class="relative w-full h-8 bg-slate-950/80 rounded-xl p-1 border border-slate-800/80 overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg w-0 transition-all duration-700 ease-out glow-bar relative">
+                <div class="absolute inset-0 progress-stripe opacity-50"></div>
+            </div>
+        </div>
 
-<div id="offlineBanner">☁️ Das Bot-Tool des Streamers ist gerade offline - du siehst eine Cloud-Vorschau deines letzten Standes. Aktionen (Fisch einsetzen, Rute kaufen, reisen ...) sind erst wieder möglich, sobald der Streamer sein Tool startet.</div>
+        <!-- Footer Stats -->
+        <div class="flex justify-between items-center mt-3 text-xs font-semibold text-slate-400">
+            <span>Stand: <strong id="current-points" class="text-slate-200">0</strong> / <strong id="target-points" class="text-slate-200">0</strong> Punkte</span>
+            <span>Noch: <strong id="remaining-points" class="text-purple-300">0</strong></span>
+        </div>
 
-<div id="app" style="display:none;">
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="aquarium" onclick="switchTab('aquarium')">🐠 Aquarium</button>
-    <button class="tab-btn" data-tab="equipment" onclick="switchTab('equipment')">🎣 Ausrüstung & Gewässer</button>
-  </div>
-
-  <div class="view active" id="view-aquarium">
-    <div class="panel">
-      <div id="pendingBar">
-        <div>Passiv-Einnahmen: <b id="pendingCoins">0</b> <span id="coinsName1">Coins</span></div>
-        <button class="btn" id="collectBtn" onclick="collectCoins()">💰 Einsammeln</button>
-      </div>
+        <!-- Settings Toggle (Wird in OBS per URL-Parameter ?obs=true ausgeblendet) -->
+        <button id="settings-btn" onclick="toggleSettings()" class="absolute top-3 right-3 text-slate-500 hover:text-white transition p-1 rounded-lg hover:bg-slate-800/50">
+            ⚙️
+        </button>
     </div>
-    <div class="panel">
-      <div class="grid" id="tank"></div>
-      <div class="hint">Klicke auf einen leeren Slot, dann auf einen Fisch aus deinem Bestand, um ihn einzusetzen.</div>
+
+    <!-- SETTINGS / LOGIN MODAL -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h2 class="text-lg font-bold text-slate-100">Twitch Goal Integration</h2>
+                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <!-- Login Status / Connect Button -->
+            <div id="auth-section" class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400 uppercase">1. Twitch Authentifizierung</label>
+                <button id="login-btn" onclick="loginTwitch()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                    Mit Twitch verbinden
+                </button>
+                <p id="user-info" class="text-xs text-slate-400 hidden">Verbunden als: <strong id="user-name" class="text-purple-400"></strong></p>
+            </div>
+
+            <!-- OBS Link Generator -->
+            <div class="pt-2 border-t border-slate-800 space-y-2">
+                <label class="block text-xs font-semibold text-slate-400 uppercase">2. OBS Browser-Quelle URL</label>
+                <div class="flex gap-2">
+                    <input type="text" id="obs-url" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-400 select-all">
+                    <button onclick="copyObsUrl()" class="bg-slate-800 hover:bg-slate-700 px-3 rounded-lg text-xs font-bold">Kopieren</button>
+                </div>
+                <p class="text-[11px] text-slate-500">Diese URL in OBS als Browser-Quelle einfügen (`?obs=true` blendet den Zahnrad-Button aus).</p>
+            </div>
+        </div>
     </div>
-    <div class="panel">
-      <h3 style="margin-bottom:10px;color:#4FC3F7;">Mein Fischbestand</h3>
-      <div class="grid" id="inventory"></div>
-    </div>
-  </div>
 
-  <div class="view" id="view-equipment">
-    <div class="panel">
-      <div class="stat-row">
-        <div class="stat"><div class="num" id="statCoins">0</div><div class="label" id="coinsName2">Coins</div></div>
-        <div class="stat"><div class="num" id="statLevel">1</div><div class="label">Angel-Level</div></div>
-        <div class="stat"><div class="num" id="statCatches">0</div><div class="label">Fänge gesamt</div></div>
-      </div>
-    </div>
-    <div class="panel">
-      <h3 style="margin-bottom:10px;color:#4FC3F7;">🎣 Ruten</h3>
-      <div id="rodsList"></div>
-    </div>
-    <div class="panel">
-      <h3 style="margin-bottom:10px;color:#4FC3F7;">🌊 Gewässer</h3>
-      <div id="locsList"></div>
-    </div>
-  </div>
-</div>
+    <script>
+        // CONFIG
+        // Trage hier deine Twitch Application Client ID ein
+        const CLIENT_ID = 'DEINE_TWITCH_CLIENT_ID';
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-<div id="toast"></div>
+        // STATE
+        let accessToken = localStorage.getItem('twitch_access_token') || '';
+        let userId = localStorage.getItem('twitch_user_id') || '';
+        let goalTitle = 'Warte auf lfd. Ziel...';
+        let currentPoints = 0;
+        let targetPoints = 0;
+        let fetchInterval = null;
 
-<script>
-// ==========================================
-// ☁️ SUPABASE KONFIGURATION
-// ==========================================
-// Trage hier deine Projekt-URL und deinen ANON (öffentlichen!) Key ein -
-// zu finden in Supabase unter Project Settings -> API.
-// NIEMALS den "service_role" Key hier eintragen - der gehört nur in app.py!
-const SUPABASE_URL = "https://suthooezxtdmxltpowqq.supabase.co";       // z.B. "https://xxxxxxxxxxx.supabase.co"
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1dGhvb2V6eHRkbXhsdHBvd3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMjI4NDIsImV4cCI6MjEwMzU5ODg0Mn0.1yA5_wTyhHuW12YckZ_SSe9tlURlBaHO6WW_lvmrRLU";  // der öffentliche "anon" Key
+        // INIT
+        window.addEventListener('DOMContentLoaded', () => {
+            handleOAuthRedirect();
+            checkUrlParams();
+            loadSettingsToUI();
+            
+            if (accessToken && userId) {
+                startGoalPolling();
+            } else if (accessToken && !userId) {
+                fetchUserData();
+            } else {
+                showSettings();
+            }
+        });
 
-let supabaseClient = null;
-if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+        // OAUTH HANDLER (Implicit Grant)
+        function handleOAuthRedirect() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const token = params.get('access_token');
+            if (token) {
+                accessToken = token;
+                localStorage.setItem('twitch_access_token', token);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                fetchUserData();
+            }
+        }
 
-const params = new URLSearchParams(window.location.search);
-let user = (params.get('user') || localStorage.getItem('angel_user') || '').toLowerCase();
-let api = (params.get('api') || localStorage.getItem('angel_api') || '').replace(/\/$/, '');
-let streamerId = (params.get('streamer') || localStorage.getItem('angel_streamer') || '').toLowerCase();
-let verifiedViaTwitch = false;
-let localApiOnline = null; // null = noch nicht geprüft
-let selectedSlot = null;
-let coinsName = 'Coins';
+        function loginTwitch() {
+            // Scope channel:read:goals wird zwingend für die Native Goals API benötigt
+            const scopes = encodeURIComponent('channel:read:goals');
+            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${scopes}`;
+            window.location.href = authUrl;
+        }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.innerText = msg;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3500);
-}
+        async function fetchUserData() {
+            try {
+                const res = await fetch('https://api.twitch.tv/helix/users', {
+                    headers: { 
+                        'Client-ID': CLIENT_ID, 
+                        'Authorization': `Bearer ${accessToken}` 
+                    }
+                });
+                const data = await res.json();
+                if (data.data && data.data[0]) {
+                    userId = data.data[0].id;
+                    const userName = data.data[0].display_name;
+                    localStorage.setItem('twitch_user_id', userId);
+                    localStorage.setItem('twitch_user_name', userName);
+                    
+                    document.getElementById('user-name').innerText = userName;
+                    document.getElementById('user-info').classList.remove('hidden');
+                    
+                    startGoalPolling();
+                } else {
+                    // Token abgelaufen oder ungültig
+                    logout();
+                }
+            } catch (e) {
+                console.error("Fehler beim Abrufen der Twitch-Userdaten:", e);
+                updateStatus(false, 'Fehler bei Auth');
+            }
+        }
 
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  if (name === 'equipment') loadEquipment();
-}
+        // FETCH TWITCH NATIVE COMMUNITY GOALS
+        async function fetchTwitchGoal() {
+            if (!accessToken || !userId) return;
 
-// ---------- Twitch-Login (echtes OAuth über Supabase Auth) ----------
-async function loginWithTwitch() {
-  if (!supabaseClient) {
-    showToast('Twitch-Login ist noch nicht eingerichtet (Supabase fehlt).');
-    return;
-  }
-  await supabaseClient.auth.signInWithOAuth({
-    provider: 'twitch',
-    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
-  });
-}
+            try {
+                const response = await fetch(`https://api.twitch.tv/helix/goals?broadcaster_id=${userId}`, {
+                    headers: {
+                        'Client-ID': CLIENT_ID,
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
 
-function logout() {
-  if (supabaseClient) supabaseClient.auth.signOut();
-  localStorage.removeItem('angel_user');
-  localStorage.removeItem('angel_api');
-  localStorage.removeItem('angel_streamer');
-  location.reload();
-}
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
 
-function extractTwitchLogin(supaUser) {
-  // Supabase legt den Twitch-Nutzernamen je nach Version/Einstellung unter
-  // unterschiedlichen Feldern ab - wir probieren die gängigen der Reihe nach.
-  // Falls dein Login später "undefined" zeigt: einmal console.log(supaUser)
-  // aufrufen und das richtige Feld unten ergänzen.
-  const m = supaUser?.user_metadata || {};
-  return (m.preferred_username || m.user_name || m.nickname || m.name || '').toLowerCase();
-}
+                const data = await response.json();
 
-async function checkTwitchSession() {
-  if (!supabaseClient) return false;
-  const { data } = await supabaseClient.auth.getSession();
-  const session = data?.session;
-  if (!session) return false;
-  const login = extractTwitchLogin(session.user);
-  if (!login) return false;
-  user = login;
-  verifiedViaTwitch = true;
-  localStorage.setItem('angel_user', user);
-  return true;
-}
+                if (data.data && data.data.length > 0) {
+                    // Sucht nach dem aktiven Kanalpunkte-Gemeinschaftsziel
+                    const activeGoal = data.data.find(g => g.type === 'channel_points' || g.type === 'creator_goal') || data.data[0];
 
-// ---------- Verbindung / Start ----------
-function manualStart() {
-  user = document.getElementById('inUser').value.trim().toLowerCase();
-  api = document.getElementById('inApi').value.trim().replace(/\/$/, '');
-  if (!user || !api) { showToast('Bitte Nutzername und Server-Adresse angeben.'); return; }
-  localStorage.setItem('angel_user', user);
-  localStorage.setItem('angel_api', api);
-  init();
-}
+                    if (activeGoal) {
+                        goalTitle = activeGoal.description || 'Community Goal';
+                        currentPoints = activeGoal.current_amount;
+                        targetPoints = activeGoal.target_amount;
 
-async function init() {
-  await checkTwitchSession();
+                        updateGoalUI();
+                        updateStatus(true, 'Live Verbunden');
+                    }
+                } else {
+                    goalTitle = 'Kein aktives Goal';
+                    currentPoints = 0;
+                    targetPoints = 0;
+                    updateGoalUI();
+                    updateStatus(true, 'Inaktiv (Kein Goal)');
+                }
+            } catch (error) {
+                console.error("Fehler beim Abrufen des Twitch Goals:", error);
+                updateStatus(false, 'Verbindungsfehler');
+            }
+        }
 
-  if (!user) {
-    document.getElementById('setupBox').style.display = 'block';
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('userLabel').innerText = 'Keine Verbindung - mit Twitch verbinden, über !aquarium im Chat aufrufen, oder unten manuell eintragen.';
-    return;
-  }
-  if (api) { localStorage.setItem('angel_api', api); }
-  if (streamerId) { localStorage.setItem('angel_streamer', streamerId); }
+        function startGoalPolling() {
+            fetchTwitchGoal();
+            if (fetchInterval) clearInterval(fetchInterval);
+            // Alle 10 Sekunden den aktuellen Stand von Twitch abfragen
+            fetchInterval = setInterval(fetchTwitchGoal, 10000);
+        }
 
-  document.getElementById('setupBox').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('userLabel').innerHTML =
-    '@' + user + (verifiedViaTwitch ? ' <span style="color:#9146FF;">✔ Twitch-verifiziert</span>' : ' <span style="color:var(--muted);">(unverifiziert)</span>') +
-    ' <span class="logout-link" onclick="logout()">abmelden / wechseln</span>';
+        function logout() {
+            localStorage.removeItem('twitch_access_token');
+            localStorage.removeItem('twitch_user_id');
+            localStorage.removeItem('twitch_user_name');
+            accessToken = '';
+            userId = '';
+            if (fetchInterval) clearInterval(fetchInterval);
+            updateStatus(false, 'Getrennt');
+            showSettings();
+        }
 
-  await refreshLocalApiStatus();
-  loadAquarium();
-}
+        // UI UPDATES
+        function updateGoalUI() {
+            document.getElementById('goal-title').innerText = goalTitle;
+            document.getElementById('current-points').innerText = currentPoints.toLocaleString();
+            document.getElementById('target-points').innerText = targetPoints.toLocaleString();
 
-// Prüft kurz (mit Timeout), ob das lokale Bot-Tool des Streamers gerade
-// über den Tunnel erreichbar ist. Wenn nicht: Cloud-Vorschau statt Live-Modus.
-async function refreshLocalApiStatus() {
-  if (!api) { localApiOnline = false; }
-  else {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 4000);
-      const res = await fetch(api + '/aquarium_data?user=' + encodeURIComponent(user) + '&_=' + Date.now(), { signal: ctrl.signal });
-      clearTimeout(t);
-      localApiOnline = res.ok;
-    } catch (e) {
-      localApiOnline = false;
-    }
-  }
-  document.getElementById('offlineBanner').style.display = localApiOnline ? 'none' : 'block';
-  document.getElementById('collectBtn').disabled = !localApiOnline;
-}
+            const remaining = Math.max(0, targetPoints - currentPoints);
+            document.getElementById('remaining-points').innerText = remaining.toLocaleString();
 
-async function apiGet(path) {
-  const res = await fetch(api + path + (path.includes('?') ? '&' : '?') + '_=' + Date.now());
-  return res.json();
-}
+            const pct = targetPoints > 0 ? Math.min(100, Math.round((currentPoints / targetPoints) * 100)) : 0;
+            document.getElementById('goal-percent').innerText = `${pct}%`;
 
-// Liest die zuletzt vom Bot-Tool synchronisierte Cloud-Kopie (Supabase),
-// falls der Streamer gerade offline ist. Nur Lesevorschau, keine Aktionen.
-async function cloudGet() {
-  if (!supabaseClient || !streamerId || !user) {
-    console.warn('☁️ Cloud-Lookup übersprungen: streamerId=', streamerId, 'user=', user, 'supabaseClient=', !!supabaseClient);
-    return null;
-  }
-  try {
-    const { data, error } = await supabaseClient
-      .from('aquarium_cache')
-      .select('aquarium, equipment, updated_at')
-      .eq('streamer_id', streamerId)
-      .eq('twitch_username', user)
-      .maybeSingle();
-    if (error) {
-      console.error('☁️ Supabase-Cloud-Lookup fehlgeschlagen:', error);
-      return null;
-    }
-    if (!data) {
-      console.warn('☁️ Kein Cache-Eintrag für streamer_id=', streamerId, 'twitch_username=', user);
-      return null;
-    }
-    return data;
-  } catch (e) {
-    console.error('☁️ Cloud-Lookup Exception:', e);
-    return null;
-  }
-}
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${pct}%`;
 
-// ---------- Aquarium ----------
-async function loadAquarium() {
-  let data;
-  if (localApiOnline) {
-    data = await apiGet('/aquarium_data?user=' + encodeURIComponent(user));
-  } else {
-    const cached = await cloudGet();
-    data = cached ? cached.aquarium : { fishes: [], slots: [], pending_coins: 0, coins_name: coinsName, max_slots: 6 };
-    if (!cached) {
-      let reason = 'noch keine Daten für dich in der Cloud gefunden';
-      if (!streamerId) reason = 'kein "streamer"-Parameter im Link (bitte den Link erneut über !aquarium im Chat holen)';
-      else if (!user) reason = 'kein Nutzername erkannt';
-      showToast('☁️ Cloud-Vorschau nicht verfügbar: ' + reason + '.');
-    }
-  }
-  coinsName = data.coins_name || coinsName;
-  document.getElementById('coinsName1').innerText = coinsName;
-  document.getElementById('coinsName2').innerText = coinsName;
-  renderTank(data);
-  renderInventory(data);
-  document.getElementById('pendingCoins').innerText = data.pending_coins || 0;
-}
+            if (pct >= 100 && targetPoints > 0) {
+                progressBar.className = "h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-lg w-0 transition-all duration-700 ease-out glow-completed relative";
+            } else {
+                progressBar.className = "h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg w-0 transition-all duration-700 ease-out glow-bar relative";
+            }
+        }
 
-function renderTank(data) {
-  const tank = document.getElementById('tank');
-  tank.innerHTML = '';
-  const bySlot = {};
-  (data.slots || []).forEach(s => bySlot[s.slot_index] = s);
-  for (let i = 0; i < (data.max_slots || 6); i++) {
-    const div = document.createElement('div');
-    const s = bySlot[i];
-    div.className = 'slot' + (s ? ' filled' : '');
-    if (s) {
-      div.innerHTML = (localApiOnline ? '<span class="remove" onclick="event.stopPropagation();removeFish(' + i + ')">✖</span>' : '') +
-        '<div style="font-size:32px;">' + (s.is_shiny ? '✨🐟' : '🐟') + '</div>' +
-        '<div class="rarity-' + s.rarity + '">' + s.species + '</div>' +
-        '<div class="rate">+' + s.coins_per_hour + '/h</div>';
-    } else {
-      div.innerText = 'Leerer Slot #' + (i + 1);
-      if (localApiOnline) {
-        div.onclick = () => { selectedSlot = i; showToast('Slot ' + (i + 1) + ' gewählt - klicke jetzt auf einen Fisch unten.'); };
-      } else {
-        div.style.cursor = 'not-allowed';
-      }
-    }
-    tank.appendChild(div);
-  }
-}
+        function updateStatus(connected, text) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            txt.innerText = text;
+            if (connected) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+            }
+        }
 
-function renderInventory(data) {
-  const inv = document.getElementById('inventory');
-  inv.innerHTML = '';
-  (data.fishes || []).forEach(f => {
-    const div = document.createElement('div');
-    div.className = 'fishcard' + (f.in_aquarium || !localApiOnline ? ' placed' : '');
-    div.innerHTML = '<div class="rarity-' + f.rarity + (f.is_shiny ? ' shiny' : '') + '">' + (f.is_shiny ? '✨ ' : '') + f.species + '</div>' +
-      '<div class="hint">' + f.length_cm + 'cm / ' + f.weight_kg + 'kg</div>' +
-      '<div class="hint">Wert: ' + f.base_value + '</div>';
-    if (!f.in_aquarium && localApiOnline) {
-      div.onclick = () => {
-        if (selectedSlot === null) { showToast('Zuerst einen leeren Slot oben auswählen.'); return; }
-        placeFish(f.id, selectedSlot);
-      };
-    }
-    inv.appendChild(div);
-  });
-}
+        // SETTINGS & HELPERS
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+        }
 
-async function placeFish(fishId, slot) {
-  const r = await apiGet('/aquarium_place?user=' + encodeURIComponent(user) + '&fish_id=' + fishId + '&slot=' + slot + '&action=place');
-  selectedSlot = null;
-  if (r.ok) { renderTank(r.data); renderInventory(r.data); } else { showToast(r.error || 'Fehler'); }
-}
+        function showSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
 
-async function removeFish(slot) {
-  const r = await apiGet('/aquarium_place?user=' + encodeURIComponent(user) + '&fish_id=0&slot=' + slot + '&action=remove');
-  if (r.ok) { renderTank(r.data); renderInventory(r.data); } else { showToast(r.error || 'Fehler'); }
-}
+        function loadSettingsToUI() {
+            document.getElementById('obs-url').value = `${window.location.origin}${window.location.pathname}?obs=true`;
+            const savedName = localStorage.getItem('twitch_user_name');
+            if (savedName) {
+                document.getElementById('user-name').innerText = savedName;
+                document.getElementById('user-info').classList.remove('hidden');
+            }
+        }
 
-async function collectCoins() {
-  if (!localApiOnline) { showToast('Das Bot-Tool ist gerade offline - Einsammeln erst wieder möglich, wenn es läuft.'); return; }
-  const r = await apiGet('/aquarium_collect?user=' + encodeURIComponent(user));
-  if (r.ok) {
-    showToast('+' + r.collected + ' ' + coinsName + ' eingesammelt!');
-    renderTank(r.data); renderInventory(r.data);
-    document.getElementById('pendingCoins').innerText = r.data.pending_coins;
-  } else { showToast(r.error || 'Fehler'); }
-}
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('obs') === 'true') {
+                document.getElementById('settings-btn').classList.add('hidden');
+            }
+        }
 
-// ---------- Ausrüstung & Gewässer ----------
-async function loadEquipment() {
-  let data;
-  if (localApiOnline) {
-    data = await apiGet('/equipment_data?user=' + encodeURIComponent(user));
-    if (!data.ok) { showToast(data.error || 'Fehler beim Laden'); return; }
-  } else {
-    const cached = await cloudGet();
-    data = cached ? Object.assign({ ok: true }, cached.equipment) : { ok: true, coins: 0, coins_name: coinsName, fish_level: 1, total_catches: 0, rods: [], locations: [] };
-  }
-  coinsName = data.coins_name || coinsName;
-  document.getElementById('coinsName2').innerText = coinsName;
-  document.getElementById('statCoins').innerText = data.coins;
-  document.getElementById('statLevel').innerText = data.fish_level;
-  document.getElementById('statCatches').innerText = data.total_catches;
-  renderRods(data.rods);
-  renderLocations(data.locations);
-}
-
-function renderRods(rods) {
-  const box = document.getElementById('rodsList');
-  box.innerHTML = '';
-  (rods || []).forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'rod-card' + (r.equipped ? ' equipped' : '');
-    let actionHtml = '';
-    if (!localApiOnline) {
-      actionHtml = '<span class="badge">Nur Vorschau</span>';
-    } else if (!r.owned) {
-      actionHtml = '<button class="btn purple" onclick="buyRod(' + r.id + ')">Kaufen (' + r.price + ')</button>';
-    } else if (r.equipped && r.upgrade_cost !== null) {
-      actionHtml = '<button class="btn gold" onclick="upgradeRod()">Upgrade (' + r.upgrade_cost + ')</button>';
-    } else if (r.equipped) {
-      actionHtml = '<span class="badge">MAX-LEVEL</span>';
-    } else {
-      actionHtml = '<span class="badge">Im Besitz</span>';
-    }
-    div.innerHTML = '<div><b>' + r.name + '</b>' + (r.equipped ? ' <span class="badge">Ausgerüstet</span>' : '') +
-      '<div class="hint">' + (r.owned ? ('Stufe ' + r.level + '/' + r.max_level) : ('Preis: ' + r.price + ' ' + coinsName)) + '</div></div>' +
-      '<div>' + actionHtml + '</div>';
-    box.appendChild(div);
-  });
-}
-
-function renderLocations(locs) {
-  const box = document.getElementById('locsList');
-  box.innerHTML = '';
-  (locs || []).forEach(l => {
-    const div = document.createElement('div');
-    div.className = 'loc-card' + (l.active ? ' active' : '');
-    let actionHtml = '';
-    if (!localApiOnline) {
-      actionHtml = '<span class="badge">Nur Vorschau</span>';
-    } else if (l.active) {
-      actionHtml = '<span class="badge">Aktuell hier</span>';
-    } else if (!l.reachable) {
-      actionHtml = '<span class="badge">Level ' + l.required_level + ' nötig</span>';
-    } else {
-      const label = l.unlocked ? 'Reisen' : ('Freischalten (' + l.travel_cost + ')');
-      actionHtml = '<button class="btn purple" onclick="travel(' + l.id + ')">' + label + '</button>';
-    }
-    div.innerHTML = '<div><b>' + l.name + '</b>' + (l.active ? ' <span class="badge">Aktiv</span>' : '') +
-      '<div class="hint">Level ' + l.required_level + '+ ' + (l.unlocked ? '(freigeschaltet)' : ('| einmalig ' + l.travel_cost + ' ' + coinsName)) + '</div></div>' +
-      '<div>' + actionHtml + '</div>';
-    box.appendChild(div);
-  });
-}
-
-async function buyRod(rodId) {
-  const r = await apiGet('/equipment_buy?user=' + encodeURIComponent(user) + '&rod_id=' + rodId);
-  showToast(r.ok ? r.message : (r.error || 'Fehler'));
-  if (r.ok) loadEquipment();
-}
-
-async function upgradeRod() {
-  const r = await apiGet('/equipment_upgrade?user=' + encodeURIComponent(user));
-  showToast(r.ok ? r.message : (r.error || 'Fehler'));
-  if (r.ok) loadEquipment();
-}
-
-async function travel(locId) {
-  const r = await apiGet('/equipment_travel?user=' + encodeURIComponent(user) + '&location_id=' + locId);
-  showToast(r.ok ? r.message : (r.error || 'Fehler'));
-  if (r.ok) loadEquipment();
-}
-
-init();
-setInterval(async () => {
-  await refreshLocalApiStatus();
-  if (document.getElementById('view-aquarium').classList.contains('active')) loadAquarium();
-  else loadEquipment();
-}, 15000);
-</script>
+        function copyObsUrl() {
+            const input = document.getElementById('obs-url');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert("URL kopiert! Füge sie als Browser-Quelle in OBS ein.");
+        }
+    </script>
 </body>
 </html>
